@@ -21,11 +21,7 @@ type Server struct {
 
 type Database struct {
 	DriverName string `mapstructure:"driver_name"`
-	Host       string `mapstructure:"host"`
-	Port       string `mapstructure:"port"`
-	User       string `mapstructure:"user"`
-	Password   string `mapstructure:"password"`
-	DBName     string `mapstructure:"db_name"`
+	DNS        string `mapstructure:"dns"`
 }
 
 func LoadConfiguration() (Config, error) {

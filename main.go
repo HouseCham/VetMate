@@ -36,15 +36,7 @@ func main() {
 }
 
 func LoadDbConnection(config config.Config) (*sql.DB, error) {
-	// DB, err := sql.Open(config.DevConfiguration.Database.DriverName, 
-	// 	fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", 
-	// 		config.DevConfiguration.Database.User,
-	// 		config.DevConfiguration.Database.Password,
-	// 		config.DevConfiguration.Database.Host,
-	// 		config.DevConfiguration.Database.Port,
-	// 		config.DevConfiguration.Database.DBName))
-	DB, err := sql.Open("mysql", "root:secret@tcp(localhost:3306)/VetMate")
-
+	DB, err := sql.Open(config.DevConfiguration.Database.DriverName, config.DevConfiguration.Database.DNS)
 	if err != nil {
 		return nil, err
 	}
