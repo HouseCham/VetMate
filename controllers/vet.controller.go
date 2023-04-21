@@ -40,6 +40,7 @@ func InsertNewVet(c *fiber.Ctx) error {
 		})
 	}
 
+	//! TODO: Check if email is already in use
 	// Validate request body
 	if isValid, err := validations.ValidateVet(request); !isValid {
 		return c.JSON(fiber.Map{
