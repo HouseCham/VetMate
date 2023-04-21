@@ -5,6 +5,7 @@ import (
 
 	"github.com/HouseCham/VetMate/database/sql"
 	"github.com/HouseCham/VetMate/util"
+	"github.com/HouseCham/VetMate/validations"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -29,11 +30,20 @@ func InsertNewVet(c *fiber.Ctx) error {
 	var request db.InsertNewVetParams
 	var err error
 
+	// Parse request body from JSON to struct
 	c.BodyParser(&request)
+	// Hash password
 	request.PasswordHash, err = util.HashPassword(request.PasswordHash)
 	if err != nil {
 		return c.JSON(fiber.Map{
 			"message": "Error hashing password",
+		})
+	}
+
+	// Validate request body
+	if isValid, err := validations.ValidateVet(request); !isValid {
+		return c.JSON(fiber.Map{
+			"message": err.Error(),
 		})
 	}
 
