@@ -1,0 +1,12 @@
+version: "1"
+packages:
+  - name: "db"
+    path: "./database/sql"
+    queries: "./database/query/"
+    schema: "./database/migration/"
+    engine: "mysql"
+    emit_json_tags: true
+    emit_prepared_queries: false
+    emit_interface: false
+    emit_exact_table_names: false # FALSE: accounts table -> Account struct // TRUE: accounts table -> Accounts struct
+    
