@@ -87,3 +87,50 @@ func GetVetById(c *fiber.Ctx) error {
 	}
 	return c.JSON(mainInfo)
 }
+
+type LoginRequest struct {
+	Email string `json:"email"`
+	Password string `json:"password"`
+}
+
+func LoginVet(c *fiber.Ctx) error {
+	var request LoginRequest
+	var err error
+
+	// Parse request body from JSON to struct
+	c.BodyParser(&request)
+
+	// Validate request body
+	// if not valid, return 400
+	if isValid, err := validations.ValidateVetLogin(request.Email, request.Password); !isValid {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "Invalid request body",
+			"error": err.Error(),
+		})
+	}
+
+	// Get vet info from database
+	vet, err := Queries.GetVetByEmail(c.Context(), request.Email)
+	if err != nil {
+		c.Status(fiber.StatusNotFound)
+		return c.JSON(fiber.Map{
+			"message": "Could not get vet info",
+			"error": err.Error(),
+		})
+	}
+
+	// Compare password
+	// if error occurs, return 500
+	if err := util.CheckPassword(request.Password, vet.PasswordHash); err != nil {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{
+			"message": "Wrong password",
+			"error": err.Error(),
+		})
+	}
+
+	//! TODO: Generate JWT token
+
+	return c.JSON(vet)
+}
