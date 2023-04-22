@@ -40,6 +40,8 @@ func trimInputFields(input interfaces.INewInsertParams) {
 	input.Trim()
 }
 
+// CheckVetEmailAlreadyInUse is a function that checks
+// if the email is already in use by checking the database
 func checkVetEmailAlreadyInUse(email string, c *fiber.Ctx) (string, error) {
 	emailExists, err := Queries.CheckVetEmailExists(c.Context(), email)
 	if err != nil {
@@ -137,6 +139,8 @@ func (loginRequest *LoginRequest) Trim() {
 	loginRequest.Password = strings.TrimSpace(loginRequest.Password)
 }
 
+// LoginVet is a function that logs in the vet
+// by checking the email and password
 func LoginVet(c *fiber.Ctx) error {
 	var request LoginRequest
 	var err error
