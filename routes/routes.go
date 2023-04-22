@@ -9,5 +9,6 @@ import (
 func SetAllRoutes(app *fiber.App) {
 	// Vet Routes
 	app.Post("/api/v1/vet", controllers.InsertNewVet)
+	app.Post("/api/v1/vet/login", controllers.LoginVet)
 	app.Get("/api/v1/vet/:id", controllers.GetVetById)
 }

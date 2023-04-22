@@ -10,6 +10,25 @@ import (
 	"database/sql"
 )
 
+const getVetByEmail = `-- name: GetVetByEmail :one
+SELECT id, email, password_hash
+FROM veterinarios
+WHERE email = ?
+`
+
+type GetVetByEmailRow struct {
+	ID           int32  `json:"id"`
+	Email        string `json:"email"`
+	PasswordHash string `json:"password_hash"`
+}
+
+func (q *Queries) GetVetByEmail(ctx context.Context, email string) (GetVetByEmailRow, error) {
+	row := q.db.QueryRowContext(ctx, getVetByEmail, email)
+	var i GetVetByEmailRow
+	err := row.Scan(&i.ID, &i.Email, &i.PasswordHash)
+	return i, err
+}
+
 const getVetMainInfoById = `-- name: GetVetMainInfoById :one
 SELECT id, nombre, apellido_p, apellido_m, email, telefono, img_url
 FROM veterinarios

@@ -14,3 +14,8 @@ INSERT INTO veterinarios (
     img_url,
     password_hash
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+-- name: GetVetByEmail :one
+SELECT id, email, password_hash
+FROM veterinarios
+WHERE email = ?;

@@ -10,39 +10,17 @@ import (
 // ValidateVet is a function that validates the
 // request body for the InsertNewVet function
 func ValidateVet(vet db.InsertNewVetParams) (bool, error) {
-	// Check if required fields are empty
-	if vet.Nombre == "" {
-		return false, errors.New("nombre is required")
-	} else if vet.ApellidoP == "" {
-		return false, errors.New("apellidoP is required")
-	}else if vet.ApellidoM == "" {
-		return false, errors.New("apellidoM is required")
-	} else if vet.PasswordHash == "" {
-		return false, errors.New("passwordHash is required")
+	// Check if fullname is valid
+	if isVetNameValid, err := IsFullNameValid(vet.Nombre, vet.ApellidoP, vet.ApellidoM); !isVetNameValid {
+		return false, err
 	}
-	// Check fullname fields for special characters
-	if HasSpecialCharacters(vet.Nombre) {
-		return false, errors.New("nombre cannot contain special characters")
-	} else if HasSpecialCharacters(vet.ApellidoP) {
-		return false, errors.New("apellidoP cannot contain special characters")
-	} else if HasSpecialCharacters(vet.ApellidoM) {
-		return false, errors.New("apellidoM cannot contain special characters")
-	}
-	// Check if fullname fields are at least 2 characters long and no more than specified
-	if len(vet.Nombre) < 2 || len(vet.Nombre) > 100 {
-		return false, errors.New("nombre must be at least 2 characters long and no more than 100 characters long")
-	} else if len(vet.ApellidoP) < 2 || len(vet.ApellidoP) > 50 {
-		return false, errors.New("apellidoP must be at least 2 characters long and no more than 50 characters long")
-	} else if len(vet.ApellidoM) < 2 || len(vet.ApellidoM) > 50 {
-		return false, errors.New("apellidoM must be at least 2 characters long and no more than 50 characters long")
-	}
-	// Check if password is at least 8 characters long
-	if len(vet.PasswordHash) < 8 {
-		return false, errors.New("passwordHash must be at least 8 characters long")
+	// Check if password is valid
+	if isPasswordValid, err := IsValidPasswordInput(vet.PasswordHash); !isPasswordValid {
+		return false, err
 	}
 	// Check if email is valid
-	if !IsValidEmail(vet.Email) {
-		return false, errors.New("email is not valid")
+	if isEmailValid, err := IsValidEmail(vet.Email); !isEmailValid {
+		return false, err
 	}
 	// Check if optional fields are not longer than specified	
 	if len(vet.Telefono.String) > 20 {
@@ -53,19 +31,79 @@ func ValidateVet(vet db.InsertNewVetParams) (bool, error) {
 	return true, nil
 }
 
+// ValidateVetLogin is a function that validates the
+// request body for the VetLogin function
+// It checks if the email and password are valid
+func ValidateVetLogin(email string, password string) (bool, error) {
+	if isValid, err := IsValidEmail(email); !isValid {
+		return false, err
+	} else if isValidPwd, err := IsValidPasswordInput(password); !isValidPwd {
+		return false, err
+	}
+	return true, nil
+}
 // HasSpecialCharacters is a function that checks if a string
 // contains special characters
 func HasSpecialCharacters(s string) bool {
     re := regexp.MustCompile("[^a-zA-Z]+")
     return re.MatchString(s)
 }
-
 // IsValidEmail is a function that checks if an email is valid
-func IsValidEmail(email string) bool {
+func IsValidEmail(email string) (bool, error) {
     // regular expression pattern for email validation
     pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
     // compile the pattern into a regular expression object
     regex := regexp.MustCompile(pattern)
     // match the email against the regular expression
-    return regex.MatchString(email)
+	// also check if email is not longer than 150 characters
+    if !regex.MatchString(email) {
+		return false, errors.New("email is not valid")
+	} else if len(email) > 150 {
+		return false, errors.New("email length is greater than 150 characters")
+	}
+	return true, nil
+}
+// IsFullNameValid is a function that checks if a fullname is valid
+// A fullname is valid if it is not empty, does not contain special characters,
+// and is at least 2 characters long and no longer than db specified
+func IsFullNameValid(nombre string, apellidoP string, apellidoM string) (bool, error) {
+	// Check if required fields are empty
+	if nombre == "" {
+		return false, errors.New("nombre is required")
+	} else if apellidoP == "" {
+		return false, errors.New("apellidoP is required")
+	}else if apellidoM == "" {
+		return false, errors.New("apellidoM is required")
+	}
+	// Check fullname fields for special characters
+	if HasSpecialCharacters(nombre) {
+		return false, errors.New("nombre cannot contain special characters")
+	} else if HasSpecialCharacters(apellidoP) {
+		return false, errors.New("apellidoP cannot contain special characters")
+	} else if HasSpecialCharacters(apellidoM) {
+		return false, errors.New("apellidoM cannot contain special characters")
+	}
+
+	// Check if fullname fields are at least 2 characters long and no more than specified
+	if len(nombre) < 2 || len(nombre) > 100 {
+		return false, errors.New("nombre must be at least 2 characters long and no more than 100 characters long")
+	} else if len(apellidoP) < 2 || len(apellidoP) > 50 {
+		return false, errors.New("apellidoP must be at least 2 characters long and no more than 50 characters long")
+	} else if len(apellidoM) < 2 || len(apellidoM) > 50 {
+		return false, errors.New("apellidoM must be at least 2 characters long and no more than 50 characters long")
+	}
+
+	return true, nil
+}
+// IsValidPasswordInput is a function that checks if a password is valid
+// length is between 5 and 72 characters
+func IsValidPasswordInput(password string) (bool, error) {
+	if password == "" {
+		return false, errors.New("passwordHash is required")
+	}
+	// Check if password is at least 8 characters long
+	if len(password) < 5 || len(password) > 72 {
+		return false, errors.New("password length must be between 5 and 72 characters long")
+	}
+	return true, nil
 }
