@@ -67,6 +67,7 @@ func InsertNewVet(c *fiber.Ctx) error {
 
 	// Check if email is already in use
 	if message, err := checkVetEmailAlreadyInUse(request.Email, c); err != nil {
+		c.Status(fiber.StatusConflict)
 		return c.JSON(fiber.Map{
 			"message": message,
 			"error":   err.Error(),
