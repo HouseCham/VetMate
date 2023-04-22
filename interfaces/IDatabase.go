@@ -7,3 +7,7 @@ type IDatabase interface {
 	FindAll() error
 	FindById() error
 }
+
+type INewInsertParams interface {
+	Trim()
+}

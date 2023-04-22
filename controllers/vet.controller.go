@@ -3,8 +3,10 @@ package controllers
 import (
 	"database/sql"
 	"strconv"
+	"strings"
 
-	"github.com/HouseCham/VetMate/database/sql"
+	db "github.com/HouseCham/VetMate/database/sql"
+	"github.com/HouseCham/VetMate/interfaces"
 	"github.com/HouseCham/VetMate/util"
 	"github.com/HouseCham/VetMate/validations"
 	"github.com/gofiber/fiber/v2"
@@ -13,7 +15,9 @@ import (
 var DB *sql.DB
 var Queries *db.Queries
 
-// ShareDbConnection is a function that shares the 
+//? ==================== COMMON ====================
+
+// ShareDbConnection is a function that shares the
 // database connection to all controllers
 // so that they can use the same connection
 func ShareDbConnection(db *sql.DB) {
@@ -27,6 +31,16 @@ func createNewQuery() *db.Queries {
 	return db.New(DB)
 }
 
+// TrimInputFields is a function that trims all the
+// input fields from the request body
+// it is an interface function that is used by all
+// the controllers
+func trimInputFields(input interfaces.INewInsertParams) {
+	input.Trim()
+}
+
+//? ==================== VET CONTROLLERS ====================
+
 // InsertNewVet is a function that inserts a new vet
 // to the database
 func InsertNewVet(c *fiber.Ctx) error {
@@ -35,6 +49,10 @@ func InsertNewVet(c *fiber.Ctx) error {
 
 	// Parse request body from JSON to struct
 	c.BodyParser(&request)
+
+	// Trim input fields from request body
+	trimInputFields(&request)
+
 	// Hash password
 	// if error occurs, return 500
 	request.PasswordHash, err = util.HashPassword(request.PasswordHash)
@@ -42,7 +60,7 @@ func InsertNewVet(c *fiber.Ctx) error {
 		c.Status(fiber.StatusInternalServerError)
 		return c.JSON(fiber.Map{
 			"message": "Error hashing password",
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 	}
 
@@ -53,7 +71,7 @@ func InsertNewVet(c *fiber.Ctx) error {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
 			"message": "Invalid request body",
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 	}
 
@@ -70,27 +88,33 @@ func GetVetById(c *fiber.Ctx) error {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
 			"message": "Invalid ID",
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 	}
 	// then, we need to convert the id to int32
 	id32 := int32(id)
 	// then, we need to get the vet info from the database
 	// if error occurs, return 404
-	mainInfo, err :=  Queries.GetVetMainInfoById(c.Context(), id32)
+	mainInfo, err := Queries.GetVetMainInfoById(c.Context(), id32)
 	if err != nil {
 		c.Status(fiber.StatusNotFound)
 		return c.JSON(fiber.Map{
 			"message": "Could not get vet info",
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 	}
 	return c.JSON(mainInfo)
 }
 
 type LoginRequest struct {
-	Email string `json:"email"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+//? Implement Trim() function for LoginRequest struct
+func (loginRequest *LoginRequest) Trim() {
+	loginRequest.Email = strings.TrimSpace(loginRequest.Email)
+	loginRequest.Password = strings.TrimSpace(loginRequest.Password)
 }
 
 func LoginVet(c *fiber.Ctx) error {
@@ -100,33 +124,34 @@ func LoginVet(c *fiber.Ctx) error {
 	// Parse request body from JSON to struct
 	c.BodyParser(&request)
 
+	// Trim input fields from request body
+	trimInputFields(&request)
+
 	// Validate request body
 	// if not valid, return 400
 	if isValid, err := validations.ValidateVetLogin(request.Email, request.Password); !isValid {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
 			"message": "Invalid request body",
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 	}
-
 	// Get vet info from database
 	vet, err := Queries.GetVetByEmail(c.Context(), request.Email)
 	if err != nil {
 		c.Status(fiber.StatusNotFound)
 		return c.JSON(fiber.Map{
 			"message": "Could not get vet info",
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 	}
-
 	// Compare password
 	// if error occurs, return 500
 	if err := util.CheckPassword(request.Password, vet.PasswordHash); err != nil {
 		c.Status(fiber.StatusUnauthorized)
 		return c.JSON(fiber.Map{
 			"message": "Wrong password",
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 	}
 
