@@ -7,8 +7,7 @@ import (
 
 // SetAllRoutes is a function that sets up all routes for the application
 func SetAllRoutes(app *fiber.App) {
-	app.Get("/", controllers.HelloWorld)
-
 	// Vet Routes
 	app.Post("/api/v1/vet", controllers.InsertNewVet)
+	app.Get("/api/v1/vet/:id", controllers.GetVetById)
 }

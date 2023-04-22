@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"strconv"
 
 	"github.com/HouseCham/VetMate/database/sql"
 	"github.com/HouseCham/VetMate/util"
@@ -49,4 +50,28 @@ func InsertNewVet(c *fiber.Ctx) error {
 	}
 
 	return Queries.InsertNewVet(c.Context(), request)
+}
+
+func GetVetById(c *fiber.Ctx) error {
+	// first, we need to get the id from the url
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "Invalid ID",
+			"error": err.Error(),
+		})
+	}
+	// then, we need to convert the id to int32
+	id32 := int32(id)
+	// then, we need to get the vet info from the database
+	mainInfo, err :=  Queries.GetVetMainInfoById(c.Context(), id32)
+	if err != nil {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "Could not get vet info",
+			"error": err.Error(),
+		})
+	}
+	return c.JSON(mainInfo)
 }
