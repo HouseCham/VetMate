@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"errors"
 	"strconv"
 	"strings"
 
@@ -39,6 +40,17 @@ func trimInputFields(input interfaces.INewInsertParams) {
 	input.Trim()
 }
 
+func checkVetEmailAlreadyInUse(email string, c *fiber.Ctx) (string, error) {
+	emailExists, err := Queries.CheckVetEmailExists(c.Context(), email)
+	if err != nil {
+		c.Status(fiber.StatusInternalServerError)
+		return "Error checking email", err
+	} else if emailExists > 0 {
+		return "Error", errors.New("email already in use")
+	}
+	return "", err
+}
+
 //? ==================== VET CONTROLLERS ====================
 
 // InsertNewVet is a function that inserts a new vet
@@ -53,6 +65,14 @@ func InsertNewVet(c *fiber.Ctx) error {
 	// Trim input fields from request body
 	trimInputFields(&request)
 
+	// Check if email is already in use
+	if message, err := checkVetEmailAlreadyInUse(request.Email, c); err != nil {
+		return c.JSON(fiber.Map{
+			"message": message,
+			"error":   err.Error(),
+		})
+	}
+
 	// Hash password
 	// if error occurs, return 500
 	request.PasswordHash, err = util.HashPassword(request.PasswordHash)
@@ -64,7 +84,6 @@ func InsertNewVet(c *fiber.Ctx) error {
 		})
 	}
 
-	//! TODO: Check if email is already in use
 	// Validate request body
 	// if not valid, return 400
 	if isValid, err := validations.ValidateVet(request); !isValid {
@@ -111,7 +130,7 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-//? Implement Trim() function for LoginRequest struct
+// ? Implement Trim() function for LoginRequest struct
 func (loginRequest *LoginRequest) Trim() {
 	loginRequest.Email = strings.TrimSpace(loginRequest.Email)
 	loginRequest.Password = strings.TrimSpace(loginRequest.Password)

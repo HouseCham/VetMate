@@ -19,3 +19,8 @@ INSERT INTO veterinarios (
 SELECT id, email, password_hash
 FROM veterinarios
 WHERE email = ?;
+
+-- name: CheckVetEmailExists :one
+SELECT COUNT(*)
+FROM veterinarios
+WHERE email = ?;

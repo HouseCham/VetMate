@@ -10,6 +10,19 @@ import (
 	"database/sql"
 )
 
+const checkVetEmailExists = `-- name: CheckVetEmailExists :one
+SELECT COUNT(*)
+FROM veterinarios
+WHERE email = ?
+`
+
+func (q *Queries) CheckVetEmailExists(ctx context.Context, email string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, checkVetEmailExists, email)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getVetByEmail = `-- name: GetVetByEmail :one
 SELECT id, email, password_hash
 FROM veterinarios
