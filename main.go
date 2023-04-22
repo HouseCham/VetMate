@@ -13,6 +13,8 @@ import (
 
 var DB *sql.DB
 
+var invalidEmails []string
+
 func main() {
 	app := fiber.New()
 
