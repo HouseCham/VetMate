@@ -79,24 +79,25 @@ func isFullNameValid(nombre string, apellidoP string, apellidoM string) (bool, e
 		return false, errors.New("apellidoM cannot contain special characters")
 	}
 
-	// Check if fullname fields are at least 2 characters long and no more than specified
-	if len(nombre) < 2 || len(nombre) > 100 {
-		return false, errors.New("nombre must be at least 2 characters long and no more than 100 characters long")
-	} else if len(apellidoP) < 2 || len(apellidoP) > 50 {
-		return false, errors.New("apellidoP must be at least 2 characters long and no more than 50 characters long")
-	} else if len(apellidoM) < 2 || len(apellidoM) > 50 {
-		return false, errors.New("apellidoM must be at least 2 characters long and no more than 50 characters long")
+	// Check if fullname fields are valid according
+	// to the length stablished on config file
+	if len(nombre) < Config.DevConfiguration.Parameters.NameMinLength || len(nombre) > Config.DevConfiguration.Parameters.NameMaxLength {
+		return false, fmt.Errorf("nombre must be at least %d characters long and no more than %d characters long", Config.DevConfiguration.Parameters.NameMinLength, Config.DevConfiguration.Parameters.NameMaxLength)
+	} else if len(apellidoP) < Config.DevConfiguration.Parameters.ApellidoPMinLength || len(apellidoP) > Config.DevConfiguration.Parameters.ApellidoPMaxLength {
+		return false, fmt.Errorf("apellidoP must be at least %d characters long and no more than %d characters long", Config.DevConfiguration.Parameters.ApellidoPMinLength, Config.DevConfiguration.Parameters.ApellidoPMaxLength)
+	} else if len(apellidoM) < Config.DevConfiguration.Parameters.ApellidoMMinLength || len(apellidoM) > Config.DevConfiguration.Parameters.ApellidoMMaxLength {
+		return false, fmt.Errorf("apellidoM must be at least %d characters long and no more than %d characters long", Config.DevConfiguration.Parameters.ApellidoMMinLength, Config.DevConfiguration.Parameters.ApellidoMMaxLength)
 	}
 
 	return true, nil
 }
 // IsValidPasswordInput is a function that checks if a password is valid
-// length is between 5 and 72 characters
+// length is between configuration
 func isPasswordInputValid(password string) (bool, error) {
 	if password == "" {
 		return false, errors.New("password is required")
 	}
-	// Check if password is at least 8 characters long
+	// Check if password length is valid according to config file
 	if len(password) < Config.DevConfiguration.Parameters.PwdMinLength || len(password) > Config.DevConfiguration.Parameters.PwdMaxLength {
 		return false, fmt.Errorf("password length must be between %d and %d characters long", Config.DevConfiguration.Parameters.PwdMinLength, Config.DevConfiguration.Parameters.PwdMaxLength)
 	}

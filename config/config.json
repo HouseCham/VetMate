@@ -10,7 +10,13 @@
         },
         "parameters": {
             "pwd_min_length": 5,
-            "pwd_max_length": 72
+            "pwd_max_length": 72,
+            "name_min_length": 2,
+            "name_max_length": 100,
+            "apellidoP_min_length": 2,
+            "apellidoP_max_length": 50,
+            "apellidoM_min_length": 2,
+            "apellidoM_max_length": 50
         }
     }
 }

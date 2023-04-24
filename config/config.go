@@ -26,8 +26,14 @@ type Database struct {
 }
 
 type Parameters struct {
-	PwdMinLength int `mapstructure:"pwd_min_length"`
-	PwdMaxLength int `mapstructure:"pwd_max_length"`
+	PwdMinLength       int `mapstructure:"pwd_min_length"`
+	PwdMaxLength       int `mapstructure:"pwd_max_length"`
+	NameMinLength      int `mapstructure:"name_min_length"`
+	NameMaxLength      int `mapstructure:"name_max_length"`
+	ApellidoPMinLength int `mapstructure:"apellidoP_min_length"`
+	ApellidoPMaxLength int `mapstructure:"apellidoP_max_length"`
+	ApellidoMMinLength int `mapstructure:"apellidoM_min_length"`
+	ApellidoMMaxLength int `mapstructure:"apellidoM_max_length"`
 }
 
 func LoadConfiguration() (Config, error) {
