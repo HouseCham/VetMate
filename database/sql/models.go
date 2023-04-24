@@ -19,10 +19,49 @@ type DireccionLocale struct {
 	Estado    string         `json:"estado"`
 }
 
+type Familia struct {
+	ID     int32          `json:"id"`
+	Nombre sql.NullString `json:"nombre"`
+}
+
+type Mascota struct {
+	ID                          int32          `json:"id"`
+	PropietarioID               sql.NullInt32  `json:"propietario_id"`
+	RazaID                      sql.NullInt32  `json:"raza_id"`
+	RazaComentario              sql.NullString `json:"raza_comentario"`
+	Nombre                      sql.NullString `json:"nombre"`
+	Edad                        sql.NullInt32  `json:"edad"`
+	FechaRegistro               sql.NullTime   `json:"fecha_registro"`
+	FechaUpdate                 sql.NullTime   `json:"fecha_update"`
+	FechaDelete                 sql.NullTime   `json:"fecha_delete"`
+	ProximaFechaVacunacion      sql.NullTime   `json:"proxima_fecha_vacunacion"`
+	ProximaFechaDesparasitacion sql.NullTime   `json:"proxima_fecha_desparasitacion"`
+}
+
 type Negocio struct {
 	ID            int32  `json:"id"`
 	NombreNegocio string `json:"nombre_negocio"`
 	Guid          string `json:"guid"`
+}
+
+type Raza struct {
+	ID        int32          `json:"id"`
+	FamiliaID sql.NullInt32  `json:"familia_id"`
+	Nombre    sql.NullString `json:"nombre"`
+}
+
+type Usuario struct {
+	ID            int32          `json:"id"`
+	Nombre        string         `json:"nombre"`
+	ApellidoP     string         `json:"apellido_p"`
+	ApellidoM     string         `json:"apellido_m"`
+	Email         string         `json:"email"`
+	Telefono      sql.NullString `json:"telefono"`
+	PasswordHash  string         `json:"password_hash"`
+	FechaRegistro sql.NullTime   `json:"fecha_registro"`
+	FechaUpdate   sql.NullTime   `json:"fecha_update"`
+	FechaDelete   sql.NullTime   `json:"fecha_delete"`
+	EmailValidado sql.NullInt32  `json:"email_validado"`
 }
 
 type Veterinario struct {

@@ -1,11 +1,8 @@
 -- name: InsertNewPet :exec
 INSERT INTO mascotas (
-    veterinaria_id,
+    propietario_id,
+    raza_id,
+    raza_comentario,
     nombre,
-    apellido_p,
-    apellido_m,
-    email,
-    telefono,
-    img_url,
-    password_hash
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+    edad
+) VALUES (?, ?, ?, ?, ?);
