@@ -11,4 +11,7 @@ func SetAllRoutes(app *fiber.App) {
 	app.Post("/api/v1/vet", controllers.InsertNewVet)
 	app.Post("/api/v1/vet/login", controllers.LoginVet)
 	app.Get("/api/v1/vet/:id", controllers.GetVetById)
+
+	// User Routes
+	app.Post("/api/v1/user", controllers.InsertNewUser)
 }
