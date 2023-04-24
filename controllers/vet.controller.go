@@ -23,7 +23,8 @@ func InsertNewVet(c *fiber.Ctx) error {
 	trimInputFields(&request)
 
 	// Check if email is already in use
-	if message, err := checkVetEmailAlreadyInUse(request.Email, c); err != nil {
+	// set false as second parameter in order to check for vet emails
+	if message, err := checkEmailAlreadyInUse(request.Email, false, c); err != nil {
 		c.Status(fiber.StatusConflict)
 		return c.JSON(fiber.Map{
 			"message": message,

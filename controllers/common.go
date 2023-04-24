@@ -43,13 +43,23 @@ func trimInputFields(input interfaces.INewInsertParams) {
 }
 
 // CheckVetEmailAlreadyInUse is a function that checks
-// if the email is already in use by checking the database
-func checkVetEmailAlreadyInUse(email string, c *fiber.Ctx) (string, error) {
-	emailExists, err := Queries.CheckVetEmailExists(c.Context(), email)
+// if the email is already in use by checking the database.
+// if isUserTable is true, then it means we are trying to check if an user email already exists in database
+// otherwise, if it is false, we are trying to check for a vet's email.
+func checkEmailAlreadyInUse(email string, isUserTable bool, c *fiber.Ctx) (string, error) {
+	var emailExists interface{}
+	var err error
+
+	if isUserTable {
+		emailExists, err = Queries.CheckUserEmailExists(c.Context(), email)
+	} else {
+		emailExists, err = Queries.CheckVetEmailExists(c.Context(), email)
+	}
+
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError)
 		return "Error checking email", err
-	} else if emailExists > 0 {
+	} else if emailExists != nil {
 		return "Error", errors.New("email already in use")
 	}
 	return "", err

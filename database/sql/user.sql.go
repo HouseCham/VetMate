@@ -10,6 +10,19 @@ import (
 	"database/sql"
 )
 
+const checkUserEmailExists = `-- name: CheckUserEmailExists :one
+SELECT 1
+FROM usuarios
+WHERE email = ?
+`
+
+func (q *Queries) CheckUserEmailExists(ctx context.Context, email string) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, checkUserEmailExists, email)
+	var column_1 interface{}
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const insertNewUser = `-- name: InsertNewUser :exec
 INSERT INTO usuarios(
     nombre,

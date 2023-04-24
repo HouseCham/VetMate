@@ -21,6 +21,6 @@ FROM veterinarios
 WHERE email = ?;
 
 -- name: CheckVetEmailExists :one
-SELECT COUNT(*)
+SELECT 1
 FROM veterinarios
 WHERE email = ?;

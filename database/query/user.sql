@@ -7,3 +7,8 @@ INSERT INTO usuarios(
     telefono,
     password_hash
 ) VALUES (?, ?, ?, ?, ?, ?);
+
+-- name: CheckUserEmailExists :one
+SELECT 1
+FROM usuarios
+WHERE email = ?;

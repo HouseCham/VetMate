@@ -18,8 +18,7 @@ func InsertNewUser(c *fiber.Ctx) error {
 	trimInputFields(&request)
 
 	// Check if email is already in use
-	//! TODO: generate method to check email in users
-	if message, err := checkVetEmailAlreadyInUse(request.Email, c); err != nil {
+	if message, err := checkEmailAlreadyInUse(request.Email, true, c); err != nil {
 		c.Status(fiber.StatusConflict)
 		return c.JSON(fiber.Map{
 			"message": message,
