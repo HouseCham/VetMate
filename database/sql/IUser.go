@@ -8,4 +8,5 @@ func (insertNewUserParams *InsertNewUserParams) Trim(){
 	insertNewUserParams.ApellidoM = strings.TrimSpace(insertNewUserParams.ApellidoM)
 	insertNewUserParams.Email = strings.TrimSpace(insertNewUserParams.Email)
 	insertNewUserParams.Telefono.String = strings.TrimSpace(insertNewUserParams.Telefono.String)
+	insertNewUserParams.PasswordHash = strings.TrimSpace(insertNewUserParams.PasswordHash)
 }

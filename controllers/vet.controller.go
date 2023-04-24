@@ -31,6 +31,16 @@ func InsertNewVet(c *fiber.Ctx) error {
 		})
 	}
 
+	// Validate request body
+	// if not valid, return 400
+	if isValid, err := validations.ValidateVet(request); !isValid {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "Invalid request body",
+			"error":   err.Error(),
+		})
+	}
+
 	// Hash password
 	// if error occurs, return 500
 	request.PasswordHash, err = util.HashPassword(request.PasswordHash)
@@ -38,16 +48,6 @@ func InsertNewVet(c *fiber.Ctx) error {
 		c.Status(fiber.StatusInternalServerError)
 		return c.JSON(fiber.Map{
 			"message": "Error hashing password",
-			"error":   err.Error(),
-		})
-	}
-
-	// Validate request body
-	// if not valid, return 400
-	if isValid, err := validations.ValidateVet(request); !isValid {
-		c.Status(fiber.StatusBadRequest)
-		return c.JSON(fiber.Map{
-			"message": "Invalid request body",
 			"error":   err.Error(),
 		})
 	}

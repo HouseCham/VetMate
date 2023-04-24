@@ -12,7 +12,7 @@ func validateUserOrVet(nombre string, apellidoP string, apellidoM string, passwo
 		return false, err
 	}
 	// Check if password is valid
-	if isPasswordValid, err :=isPasswordInputValid(password); !isPasswordValid {
+	if isPasswordValid, err := isPasswordInputValid(password); !isPasswordValid {
 		return false, err
 	}
 	// Check if email is valid
@@ -83,7 +83,7 @@ func isFullNameValid(nombre string, apellidoP string, apellidoM string) (bool, e
 // length is between 5 and 72 characters
 func isPasswordInputValid(password string) (bool, error) {
 	if password == "" {
-		return false, errors.New("passwordHash is required")
+		return false, errors.New("password is required")
 	}
 	// Check if password is at least 8 characters long
 	if len(password) < 5 || len(password) > 72 {

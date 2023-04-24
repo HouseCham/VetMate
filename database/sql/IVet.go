@@ -9,4 +9,5 @@ func (insertVetParams *InsertNewVetParams) Trim() {
 	insertVetParams.Email = strings.TrimSpace(insertVetParams.Email)
 	insertVetParams.Telefono.String = strings.TrimSpace(insertVetParams.Telefono.String)
 	insertVetParams.ImgUrl.String = strings.TrimSpace(insertVetParams.ImgUrl.String)
+	insertVetParams.PasswordHash = strings.TrimSpace(insertVetParams.PasswordHash)
 }

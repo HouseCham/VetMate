@@ -3,6 +3,7 @@ package controllers
 import (
 	db "github.com/HouseCham/VetMate/database/sql"
 	"github.com/HouseCham/VetMate/util"
+	"github.com/HouseCham/VetMate/validations"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -26,6 +27,16 @@ func InsertNewUser(c *fiber.Ctx) error {
 		})
 	}
 
+	// Validating user request parameters
+	// if it is not valid, return 400 with error message
+	if isUserValid, err := validations.ValidateUser(request); !isUserValid {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "There is an error with the request",
+			"error": err.Error(),
+		})
+	}
+	
 	// Hash password
 	// if error occurs, return 500
 	request.PasswordHash, err = util.HashPassword(request.PasswordHash)
@@ -36,9 +47,6 @@ func InsertNewUser(c *fiber.Ctx) error {
 			"error":   err.Error(),
 		})
 	}
-
-	//! TODO: create validate function for user
-	//! GENERATE interface in order to use the same function of validation for both, user and vet
 
 	// Inserting info into the database
 	// if error occurs, return 500
