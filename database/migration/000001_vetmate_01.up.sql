@@ -31,7 +31,7 @@ CREATE TABLE `direccion_locales` (
   `estado` varchar(50) NOT NULL
 );
 
-CREATE INDEX `nombre_completo` ON `veterinarios` (`nombre`, `apellido_p`, `apellido_m`);
+CREATE INDEX `nombre_completo_vet` ON `veterinarios` (`nombre`, `apellido_p`, `apellido_m`);
 
 CREATE UNIQUE INDEX `veterinarios_index_1` ON `veterinarios` (`email`);
 

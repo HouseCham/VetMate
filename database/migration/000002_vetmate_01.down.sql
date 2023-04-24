@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS `mascotas`;
+DROP TABLE IF EXISTS `usuarios`;
+DROP TABLE IF EXISTS `razas`;
+DROP TABLE IF EXISTS `familias`;
