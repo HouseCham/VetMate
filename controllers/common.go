@@ -3,11 +3,13 @@ package controllers
 import (
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/HouseCham/VetMate/config"
 	db "github.com/HouseCham/VetMate/database/sql"
 	"github.com/HouseCham/VetMate/interfaces"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 var DB *sql.DB
@@ -47,7 +49,7 @@ func trimInputFields(input interfaces.INewInsertParams) {
 // if isUserTable is true, then it means we are trying to check if an user email already exists in database
 // otherwise, if it is false, we are trying to check for a vet's email.
 func checkEmailAlreadyInUse(email string, isUserTable bool, c *fiber.Ctx) (string, error) {
-	var emailExists interface{}
+	var emailExists int64
 	var err error
 
 	if isUserTable {
@@ -59,8 +61,25 @@ func checkEmailAlreadyInUse(email string, isUserTable bool, c *fiber.Ctx) (strin
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError)
 		return "Error checking email", err
-	} else if emailExists != nil {
+	} else if emailExists > 0 {
 		return "Error", errors.New("email already in use")
 	}
 	return "", err
+}
+
+func GenerateJWT(id int32) (string, error) {
+	// first we generate the token with the HS256 signing method and 
+	// the claims stablished
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": id,
+		"exp": time.Now().Add(time.Hour).Unix(),
+	})
+
+	// then we generate the jwt token string with the secret found in config file
+	tokenString, err := token.SignedString([]byte(Config.DevConfiguration.Jwt.Secret))
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }

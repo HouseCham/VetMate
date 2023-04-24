@@ -29,6 +29,7 @@ func main() {
 	}
 
 	controllers.ShareDbConnection(DB)
+	controllers.ShareConfigFile(&config)
 	validations.ShareConfigFile(&config)
 	routes.SetAllRoutes(app)
 

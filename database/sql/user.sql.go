@@ -11,16 +11,16 @@ import (
 )
 
 const checkUserEmailExists = `-- name: CheckUserEmailExists :one
-SELECT 1
+SELECT COUNT(*)
 FROM usuarios
 WHERE email = ?
 `
 
-func (q *Queries) CheckUserEmailExists(ctx context.Context, email string) (interface{}, error) {
+func (q *Queries) CheckUserEmailExists(ctx context.Context, email string) (int64, error) {
 	row := q.db.QueryRowContext(ctx, checkUserEmailExists, email)
-	var column_1 interface{}
-	err := row.Scan(&column_1)
-	return column_1, err
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const insertNewUser = `-- name: InsertNewUser :exec

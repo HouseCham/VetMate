@@ -13,6 +13,7 @@ type TypeConfiguration struct {
 	Server     Server     `mapstructure:"server"`
 	Database   Database   `mapstructure:"database"`
 	Parameters Parameters `mapstructure:"parameters"`
+	Jwt        JWT        `mapstructure:"jwt"`
 }
 
 type Server struct {
@@ -23,6 +24,10 @@ type Server struct {
 type Database struct {
 	DriverName string `mapstructure:"driver_name"`
 	DNS        string `mapstructure:"dns"`
+}
+
+type JWT struct {
+	Secret string `mapstructure:"secret"`
 }
 
 type Parameters struct {

@@ -9,6 +9,6 @@ INSERT INTO usuarios(
 ) VALUES (?, ?, ?, ?, ?, ?);
 
 -- name: CheckUserEmailExists :one
-SELECT 1
+SELECT COUNT(*)
 FROM usuarios
 WHERE email = ?;

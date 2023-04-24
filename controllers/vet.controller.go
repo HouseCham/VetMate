@@ -135,7 +135,19 @@ func LoginVet(c *fiber.Ctx) error {
 		})
 	}
 
-	//! TODO: Generate JWT token
+	// Generating jwt
+	// in case of error, returns 500 with error message
+	tokenString, err := GenerateJWT(vet.ID)
+	if err != nil {
+		c.Status(fiber.StatusInternalServerError)
+		return c.JSON(fiber.Map{
+			"message": "Failed to create the token",
+			"error":   err.Error(),
+		})
+	}
 
-	return c.JSON(vet)
+	return c.JSON(fiber.Map{
+		"message": "Success",
+		"token": tokenString,
+	})
 }

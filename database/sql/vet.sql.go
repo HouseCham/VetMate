@@ -11,16 +11,16 @@ import (
 )
 
 const checkVetEmailExists = `-- name: CheckVetEmailExists :one
-SELECT 1
+SELECT COUNT(*)
 FROM veterinarios
 WHERE email = ?
 `
 
-func (q *Queries) CheckVetEmailExists(ctx context.Context, email string) (interface{}, error) {
+func (q *Queries) CheckVetEmailExists(ctx context.Context, email string) (int64, error) {
 	row := q.db.QueryRowContext(ctx, checkVetEmailExists, email)
-	var column_1 interface{}
-	err := row.Scan(&column_1)
-	return column_1, err
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const getVetByEmail = `-- name: GetVetByEmail :one
