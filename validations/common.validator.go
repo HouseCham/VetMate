@@ -2,8 +2,19 @@ package validations
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
+
+	"github.com/HouseCham/VetMate/config"
 )
+
+var Config *config.Config
+
+// ShareConfigFile is a function that shares the
+// configuration setted up in main.go
+func ShareConfigFile(config *config.Config) {
+	Config = config
+}
 
 
 func validateUserOrVet(nombre string, apellidoP string, apellidoM string, password string, email string, telefono string) (bool, error) {
@@ -86,8 +97,8 @@ func isPasswordInputValid(password string) (bool, error) {
 		return false, errors.New("password is required")
 	}
 	// Check if password is at least 8 characters long
-	if len(password) < 5 || len(password) > 72 {
-		return false, errors.New("password length must be between 5 and 72 characters long")
+	if len(password) < Config.DevConfiguration.Parameters.PwdMinLength || len(password) > Config.DevConfiguration.Parameters.PwdMaxLength {
+		return false, fmt.Errorf("password length must be between %d and %d characters long", Config.DevConfiguration.Parameters.PwdMinLength, Config.DevConfiguration.Parameters.PwdMaxLength)
 	}
 	return true, nil
 }

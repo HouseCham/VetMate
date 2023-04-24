@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/HouseCham/VetMate/config"
 	db "github.com/HouseCham/VetMate/database/sql"
 	"github.com/HouseCham/VetMate/interfaces"
 	"github.com/gofiber/fiber/v2"
@@ -11,6 +12,7 @@ import (
 
 var DB *sql.DB
 var Queries *db.Queries
+var Config *config.Config
 
 // ShareDbConnection is a function that shares the
 // database connection to all controllers
@@ -18,6 +20,12 @@ var Queries *db.Queries
 func ShareDbConnection(db *sql.DB) {
 	DB = db
 	Queries = createNewQuery()
+}
+
+// ShareConfigFile is a function that shares the
+// configuration setted up in main.go
+func ShareConfigFile(config *config.Config) {
+	Config = config
 }
 
 // createNewQuery is a function that creates a new

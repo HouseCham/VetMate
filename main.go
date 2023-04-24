@@ -8,12 +8,11 @@ import (
 	"github.com/HouseCham/VetMate/config"
 	"github.com/HouseCham/VetMate/controllers"
 	"github.com/HouseCham/VetMate/routes"
+	"github.com/HouseCham/VetMate/validations"
 	"github.com/gofiber/fiber/v2"
 )
 
 var DB *sql.DB
-
-var invalidEmails []string
 
 func main() {
 	app := fiber.New()
@@ -30,6 +29,7 @@ func main() {
 	}
 
 	controllers.ShareDbConnection(DB)
+	validations.ShareConfigFile(&config)
 	routes.SetAllRoutes(app)
 
 	log.Printf("Server is running on http://%s:%s", config.DevConfiguration.Server.Host, config.DevConfiguration.Server.Port)

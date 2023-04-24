@@ -10,8 +10,9 @@ type Config struct {
 }
 
 type TypeConfiguration struct {
-	Server   Server   `mapstructure:"server"`
-	Database Database `mapstructure:"database"`
+	Server     Server     `mapstructure:"server"`
+	Database   Database   `mapstructure:"database"`
+	Parameters Parameters `mapstructure:"parameters"`
 }
 
 type Server struct {
@@ -22,6 +23,11 @@ type Server struct {
 type Database struct {
 	DriverName string `mapstructure:"driver_name"`
 	DNS        string `mapstructure:"dns"`
+}
+
+type Parameters struct {
+	PwdMinLength int `mapstructure:"pwd_min_length"`
+	PwdMaxLength int `mapstructure:"pwd_max_length"`
 }
 
 func LoadConfiguration() (Config, error) {

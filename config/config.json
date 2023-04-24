@@ -7,6 +7,10 @@
         "database": {
             "driver_name": "mysql",
             "dns": "root:secret@tcp(localhost:3306)/VetMate"
+        },
+        "parameters": {
+            "pwd_min_length": 5,
+            "pwd_max_length": 72
         }
     }
 }
