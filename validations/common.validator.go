@@ -17,17 +17,17 @@ func ShareConfigFile(config *config.Config) {
 	Config = config
 }
 
-func validateUserOrVetLogin(vet *db.Veterinario, password string, email string, telefono string, pwdMinLength int, pwdMaxLength int) (bool, error) {
+func validateUserOrVetRegister(vet *db.Veterinario) (bool, error) {
 	// Check if fullname is valid
 	if isFullnameValid, err := isFullNameValid(vet); !isFullnameValid {
 		return false, err
 	}
 	// Check if password is valid
-	if isPasswordValid, err := isPasswordInputValid(password, pwdMinLength, pwdMaxLength); !isPasswordValid {
+	if isPasswordValid, err := isPasswordInputValid(vet.PasswordHash, Config.DevConfiguration.Parameters.PwdMinLength, Config.DevConfiguration.Parameters.PwdMaxLength); !isPasswordValid {
 		return false, err
 	}
 	// Check if email is valid
-	if isEmailValid, err := isEmailValid(email); !isEmailValid {
+	if isEmailValid, err := isEmailValid(vet.Email); !isEmailValid {
 		return false, err
 	}
 	// Check if optional fields are not longer than specified
@@ -121,14 +121,16 @@ func isPasswordInputValid(password string, pwdMinLength int, pwdMaxLength int) (
 }
 
 func isPhoneValid(vet *db.Veterinario) (bool, error) {
-	if len(vet.Telefono.String) > 20 || len(vet.Telefono.String) < 5 || vet.Telefono.String == "" {
-		return false, errors.New("telefono must be at least 5 and no more than 20 characters long")
+	if vet.Telefono.Valid {
+		if len(vet.Telefono.String) < 5 || len(vet.Telefono.String) > 20 {
+			return false, errors.New("telefono must be at least 5 and no more than 20 characters long")
+		}
 	}
 	return true, nil
 }
 
 func isValidImageName(imageName string) bool {
-    pattern := "^[a-zA-Z0-9-_]+\\.[a-zA-Z]{2,4}$"
-    match, _ := regexp.MatchString(pattern, imageName)
-    return match
+	pattern := "^[a-zA-Z0-9-_]+\\.[a-zA-Z]{2,4}$"
+	match, _ := regexp.MatchString(pattern, imageName)
+	return match
 }

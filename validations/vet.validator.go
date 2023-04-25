@@ -16,7 +16,7 @@ func ValidateVet(vet *db.Veterinario, method int) (bool, error) {
 	// 1 = InsertNewVet
 	case 1:
 		// validation of fullname, password, email and phone fields with generic function
-		if isVetValid, err := validateUserOrVetLogin(vet, vet.PasswordHash, vet.Email, vet.Telefono.String, 2, 72); !isVetValid {
+		if isVetValid, err := validateUserOrVetRegister(vet); !isVetValid {
 			return false, err
 		}
 		return true, nil
