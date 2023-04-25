@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/HouseCham/VetMate/auth"
 	db "github.com/HouseCham/VetMate/database/sql"
 	"github.com/HouseCham/VetMate/util"
 	"github.com/HouseCham/VetMate/validations"
@@ -137,7 +138,7 @@ func LoginVet(c *fiber.Ctx) error {
 
 	// Generating jwt
 	// in case of error, returns 500 with error message
-	tokenString, err := GenerateJWT(vet.ID)
+	tokenString, err := auth.GenerateJWT(vet.ID)
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError)
 		return c.JSON(fiber.Map{

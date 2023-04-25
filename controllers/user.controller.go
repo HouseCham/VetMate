@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"errors"
+
 	db "github.com/HouseCham/VetMate/database/sql"
 	"github.com/HouseCham/VetMate/util"
 	"github.com/HouseCham/VetMate/validations"
@@ -59,4 +61,8 @@ func InsertNewUser(c *fiber.Ctx) error {
 	}
 
 	return nil
+}
+
+func GetUserById(c *fiber.Ctx) error {
+	return errors.New("Not implemented yet")
 }

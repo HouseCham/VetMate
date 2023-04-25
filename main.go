@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/HouseCham/VetMate/auth"
 	"github.com/HouseCham/VetMate/config"
 	"github.com/HouseCham/VetMate/controllers"
 	"github.com/HouseCham/VetMate/routes"
@@ -29,13 +30,17 @@ func main() {
 	}
 
 	controllers.ShareDbConnection(DB)
+
+	//! TODO: create function to share config file
 	controllers.ShareConfigFile(&config)
 	validations.ShareConfigFile(&config)
+	auth.ShareConfigFile(&config)
+
 	routes.SetAllRoutes(app)
 
 	log.Printf("Server is running on http://%s:%s", config.DevConfiguration.Server.Host, config.DevConfiguration.Server.Port)
-	app.Listen(fmt.Sprintf(":%s",config.DevConfiguration.Server.Port))
-	
+	app.Listen(fmt.Sprintf(":%s", config.DevConfiguration.Server.Port))
+
 }
 
 func LoadDbConnection(config config.Config) (*sql.DB, error) {
