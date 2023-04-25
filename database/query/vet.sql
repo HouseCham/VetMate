@@ -24,3 +24,8 @@ WHERE email = ?;
 SELECT COUNT(*)
 FROM veterinarios
 WHERE email = ?;
+
+-- name: UpdateVet :exec
+UPDATE veterinarios
+SET nombre = ?, apellido_p = ?, apellido_m = ?, telefono = ?, img_url = ?
+WHERE id = ?;

@@ -110,3 +110,30 @@ func (q *Queries) InsertNewVet(ctx context.Context, arg InsertNewVetParams) erro
 	)
 	return err
 }
+
+const updateVet = `-- name: UpdateVet :exec
+UPDATE veterinarios
+SET nombre = ?, apellido_p = ?, apellido_m = ?, telefono = ?, img_url = ?
+WHERE id = ?
+`
+
+type UpdateVetParams struct {
+	Nombre    string         `json:"nombre"`
+	ApellidoP string         `json:"apellido_p"`
+	ApellidoM string         `json:"apellido_m"`
+	Telefono  sql.NullString `json:"telefono"`
+	ImgUrl    sql.NullString `json:"img_url"`
+	ID        int32          `json:"id"`
+}
+
+func (q *Queries) UpdateVet(ctx context.Context, arg UpdateVetParams) error {
+	_, err := q.db.ExecContext(ctx, updateVet,
+		arg.Nombre,
+		arg.ApellidoP,
+		arg.ApellidoM,
+		arg.Telefono,
+		arg.ImgUrl,
+		arg.ID,
+	)
+	return err
+}

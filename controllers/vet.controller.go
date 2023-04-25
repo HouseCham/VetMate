@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 
@@ -160,4 +161,60 @@ func LoginVet(c *fiber.Ctx) error {
 		"message": "Success",
 		"token":   tokenString,
 	})
+}
+
+// UpdateVet is a function that updates the vet info
+// by the vet id from the url
+func UpdateVet(c *fiber.Ctx) error {
+	
+	// Get the vetId from the request context
+	// If variable not found or not of type string
+	// return 500 with error message
+	vetId, message, err := getIdFromRequestContext(c)
+	if err != nil {
+		c.Status(fiber.StatusInternalServerError)
+		return c.JSON(fiber.Map{
+			"message": message,
+			"error":   err.Error(),
+		})
+	}
+
+	var request db.UpdateVetParams
+
+	// Parse request body from JSON to struct
+	c.BodyParser(&request)
+
+	request.ID = vetId
+
+	// Trim input fields from request body
+	trimInputFields(&request)
+
+	// Validate request body
+	// if not valid, return 400
+	// if isValid, err := validations.ValidateVetUpdate(request); !isValid {
+	// 	c.Status(fiber.StatusBadRequest)
+	// 	return c.JSON(fiber.Map{
+	// 		"message": "Invalid request body",
+	// 		"error":   err.Error(),
+	// 	})
+	// }
+
+	return Queries.UpdateVet(c.Context(), request)
+}
+
+func getIdFromRequestContext(c *fiber.Ctx) (int32, string, error) {
+	// Get the variable from the request context
+	// Variable not found or not of type string
+	vetIdStr, ok := c.Locals("userId").(string)
+	if !ok {
+		return 0, "Error", errors.New("Error getting vet id")
+	}
+
+	// Convert the vetIdStr to int32
+	vetId, err := strconv.Atoi(vetIdStr)
+	if err != nil {
+		return 0, "Invalid ID", err
+	}
+
+	return int32(vetId), "", nil
 }

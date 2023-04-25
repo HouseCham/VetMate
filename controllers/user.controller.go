@@ -64,5 +64,5 @@ func InsertNewUser(c *fiber.Ctx) error {
 }
 
 func GetUserById(c *fiber.Ctx) error {
-	return errors.New("Not implemented yet")
+	return errors.New("not implemented yet")
 }

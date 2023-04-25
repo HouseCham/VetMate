@@ -11,3 +11,11 @@ func (insertVetParams *InsertNewVetParams) Trim() {
 	insertVetParams.ImgUrl.String = strings.TrimSpace(insertVetParams.ImgUrl.String)
 	insertVetParams.PasswordHash = strings.TrimSpace(insertVetParams.PasswordHash)
 }
+
+func (updateVetParams *UpdateVetParams) Trim() {
+	updateVetParams.Nombre = strings.TrimSpace(updateVetParams.Nombre)
+	updateVetParams.ApellidoP = strings.TrimSpace(updateVetParams.ApellidoP)
+	updateVetParams.ApellidoM = strings.TrimSpace(updateVetParams.ApellidoM)
+	updateVetParams.Telefono.String = strings.TrimSpace(updateVetParams.Telefono.String)
+	updateVetParams.ImgUrl.String = strings.TrimSpace(updateVetParams.ImgUrl.String)
+}
