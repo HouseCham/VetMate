@@ -72,7 +72,7 @@ func GenerateJWT(id int32) (string, error) {
 	// the claims stablished
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": id,
-		"exp": time.Now().Add(time.Hour).Unix(),
+		"exp": time.Now().Add(time.Hour * 1).Unix(),
 	})
 
 	// then we generate the jwt token string with the secret found in config file

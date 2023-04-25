@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/HouseCham/VetMate/controllers"
+	"github.com/HouseCham/VetMate/middleware"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -10,7 +11,7 @@ func SetAllRoutes(app *fiber.App) {
 	// Vet Routes
 	app.Post("/api/v1/vet", controllers.InsertNewVet)
 	app.Post("/api/v1/vet/login", controllers.LoginVet)
-	app.Get("/api/v1/vet/:id", controllers.GetVetById)
+	app.Get("/api/v1/vet/:id", middleware.JwtMiddleware() , controllers.GetVetById)
 
 	// User Routes
 	app.Post("/api/v1/user", controllers.InsertNewUser)
