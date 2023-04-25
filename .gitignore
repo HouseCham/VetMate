@@ -5,3 +5,5 @@ database/sql/vet_test.go
 
 validations/vet_test.go
 validations/common_test.go
+
+auth/jwt_test.go
