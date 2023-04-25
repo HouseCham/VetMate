@@ -138,7 +138,7 @@ func LoginVet(c *fiber.Ctx) error {
 
 	// Generating jwt
 	// in case of error, returns 500 with error message
-	tokenString, err := auth.GenerateJWT(vet.ID, Config.DevConfiguration.Jwt.Secret)
+	tokenString, err := auth.GenerateJWT(vet.ID)
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError)
 		return c.JSON(fiber.Map{

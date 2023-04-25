@@ -8,6 +8,7 @@ import (
 	"github.com/HouseCham/VetMate/auth"
 	"github.com/HouseCham/VetMate/config"
 	"github.com/HouseCham/VetMate/controllers"
+	"github.com/HouseCham/VetMate/middleware"
 	"github.com/HouseCham/VetMate/routes"
 	"github.com/HouseCham/VetMate/validations"
 	"github.com/gofiber/fiber/v2"
@@ -31,10 +32,7 @@ func main() {
 
 	controllers.ShareDbConnection(DB)
 
-	//! TODO: create function to share config file
-	controllers.ShareConfigFile(&config)
-	validations.ShareConfigFile(&config)
-	auth.ShareConfigFile(&config)
+	ShareConfigFile(config)
 
 	routes.SetAllRoutes(app)
 
@@ -43,10 +41,21 @@ func main() {
 
 }
 
+// LoadDbConnection loads the database connection
+// and returns a pointer to it
 func LoadDbConnection(config config.Config) (*sql.DB, error) {
 	DB, err := sql.Open(config.DevConfiguration.Database.DriverName, config.DevConfiguration.Database.DNS)
 	if err != nil {
 		return nil, err
 	}
 	return DB, nil
+}
+
+// ShareConfigFile shares the config file with all the packages
+// that need it
+func ShareConfigFile(config config.Config) {
+	controllers.ShareConfigFile(&config)
+	validations.ShareConfigFile(&config)
+	auth.ShareConfigFile(&config)
+	middleware.ShareConfigFile(&config)
 }

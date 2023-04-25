@@ -4,9 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/HouseCham/VetMate/config"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
 )
+
+var Config *config.Config
+
+func ShareConfigFile(config *config.Config) {
+	Config = config
+}
 
 func JwtMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -21,7 +28,7 @@ func JwtMiddleware() fiber.Handler {
 				return nil, fmt.Errorf("invalid signing method")
 			}
 			// Return secret key for HMAC validation
-			return []byte("78^baWz7^TGYSU3%kc9O&$yHXXvlCS!C7KO35Sl#"), nil
+			return []byte(Config.DevConfiguration.Jwt.Secret), nil
 		})
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
