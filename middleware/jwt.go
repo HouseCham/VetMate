@@ -36,11 +36,18 @@ func JwtMiddleware() fiber.Handler {
 			})
 		}
 
-		// Check if token is valid
+		// Check if token is valid and contains the required claim
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			// Set authenticated user ID in request context
-			c.Locals("userId", claims["sub"])
-			return c.Next()
+			if userId, ok := claims["sub"].(string); ok {
+				// Set authenticated user ID in request context
+				c.Locals("userId", userId)
+				return c.Next()
+			} else {
+				// Token is invalid
+				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+					"message": "no claim sub",
+				})
+			}
 		}
 
 		// Token is invalid

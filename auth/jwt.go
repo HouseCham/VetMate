@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/HouseCham/VetMate/config"
@@ -21,7 +22,7 @@ func GenerateJWT(id int32) (string, error) {
 	// first we generate the token with the HS256 signing method and
 	// the claims stablished
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": id,
+		"sub": strconv.Itoa(int(id)),
 		"exp": time.Now().Add(time.Hour * 1).Unix(),
 	})
 

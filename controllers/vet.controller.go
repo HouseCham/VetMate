@@ -60,9 +60,18 @@ func InsertNewVet(c *fiber.Ctx) error {
 // GetVetById is a function that gets the vet info
 // by the vet id from the url
 func GetVetById(c *fiber.Ctx) error {
-	// first, we need to get the id from the url
-	// if error occurs, return 400
-	id, err := strconv.Atoi(c.Params("id"))
+	// Get the variable from the request context
+	// Variable not found or not of type string
+	vetIdStr, ok := c.Locals("userId").(string)
+	if !ok {
+		c.Status(fiber.StatusInternalServerError)
+		return c.JSON(fiber.Map{
+			"message": "Error getting vet id",
+		})
+	}
+
+	// Convert the vetIdStr to int32
+	vetId, err := strconv.Atoi(vetIdStr)
 	if err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
@@ -70,8 +79,8 @@ func GetVetById(c *fiber.Ctx) error {
 			"error":   err.Error(),
 		})
 	}
-	// then, we need to convert the id to int32
-	id32 := int32(id)
+	id32 := int32(vetId)
+
 	// then, we need to get the vet info from the database
 	// if error occurs, return 404
 	mainInfo, err := Queries.GetVetMainInfoById(c.Context(), id32)
@@ -149,6 +158,6 @@ func LoginVet(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"message": "Success",
-		"token": tokenString,
+		"token":   tokenString,
 	})
 }
