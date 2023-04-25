@@ -4,3 +4,4 @@ database/sql/main_test.go
 database/sql/vet_test.go
 
 validations/vet_test.go
+validations/common_test.go
