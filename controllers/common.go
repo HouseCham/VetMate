@@ -42,11 +42,17 @@ func trimInputFields(input interfaces.INewInsertParams) {
 	input.Trim()
 }
 
+type IsEmailUsedChan struct {
+	Status  int
+	Message string
+	Err     error
+}
+
 // CheckVetEmailAlreadyInUse is a function that checks
 // if the email is already in use by checking the database.
 // if isUserTable is true, then it means we are trying to check if an user email already exists in database
 // otherwise, if it is false, we are trying to check for a vet's email.
-func checkEmailAlreadyInUse(email string, isUserTable bool, c *fiber.Ctx) (string, error) {
+func checkEmailAlreadyInUse(isUsedChan chan IsEmailUsedChan, email string, isUserTable bool, c *fiber.Ctx) {
 	var emailExists int64
 	var err error
 
@@ -57,10 +63,23 @@ func checkEmailAlreadyInUse(email string, isUserTable bool, c *fiber.Ctx) (strin
 	}
 
 	if err != nil {
-		c.Status(fiber.StatusInternalServerError)
-		return "Error checking email", err
+		isUsedChan <- IsEmailUsedChan{
+			Status:  fiber.StatusInternalServerError,
+			Message: "Error checking email",
+			Err:     err,
+		}
 	} else if emailExists > 0 {
-		return "Error", errors.New("email already in use")
+		isUsedChan <- IsEmailUsedChan{
+			Status:  fiber.StatusConflict,
+			Message: "Conflict",
+			Err:     errors.New("email already in use"),
+		}
+	} else {
+		isUsedChan <- IsEmailUsedChan{
+			Status:  fiber.StatusOK,
+			Message: "Email not in use",
+			Err:     nil,
+		}
 	}
-	return "", err
+	close(isUsedChan)
 }

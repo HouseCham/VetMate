@@ -10,6 +10,8 @@ import (
 )
 
 func InsertNewUser(c *fiber.Ctx) error {
+	isEmailUsedChan := make(chan IsEmailUsedChan)
+
 	var request db.InsertNewUserParams
 	var err error
 
@@ -20,12 +22,15 @@ func InsertNewUser(c *fiber.Ctx) error {
 	trimInputFields(&request)
 
 	// Check if email is already in use
-	if message, err := checkEmailAlreadyInUse(request.Email, true, c); err != nil {
-		c.Status(fiber.StatusConflict)
-		return c.JSON(fiber.Map{
-			"message": message,
-			"error":   err.Error(),
-		})
+	go checkEmailAlreadyInUse(isEmailUsedChan, request.Email, true, c)
+	for val := range isEmailUsedChan {
+		if val.Err != nil {
+			c.Status(val.Status)
+			return c.JSON(fiber.Map{
+				"message": val.Message,
+				"error":   val.Err.Error(),
+			})
+		}
 	}
 
 	// Validating user request parameters
@@ -34,10 +39,10 @@ func InsertNewUser(c *fiber.Ctx) error {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
 			"message": "There is an error with the request",
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 	}
-	
+
 	// Hash password
 	// if error occurs, return 500
 	request.PasswordHash, err = util.HashPassword(request.PasswordHash)
@@ -56,7 +61,7 @@ func InsertNewUser(c *fiber.Ctx) error {
 		c.Status(fiber.StatusInternalServerError)
 		return c.JSON(fiber.Map{
 			"message": "Sorry, there was an error",
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 	}
 
