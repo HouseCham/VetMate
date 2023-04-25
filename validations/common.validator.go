@@ -17,6 +17,8 @@ func ShareConfigFile(config *config.Config) {
 	Config = config
 }
 
+// ValidateUser is a function that validates the
+// request body for the InsertNewUser or InsertNewVet function
 func validateUserOrVetRegister(vet *db.Veterinario) (bool, error) {
 	// Check if fullname is valid
 	if isFullnameValid, err := isFullNameValid(vet); !isFullnameValid {
@@ -37,6 +39,8 @@ func validateUserOrVetRegister(vet *db.Veterinario) (bool, error) {
 	return true, nil
 }
 
+// ValidateUserUpdate is a function that validates the
+// request body for the UpdateUser or UpdateVet function
 func validateUserOrVetUpdate(vet *db.Veterinario) (bool, error) {
 	if isFullnameValid, err := isFullNameValid(vet); !isFullnameValid {
 		return false, err
@@ -93,7 +97,6 @@ func isFullNameValid(vet *db.Veterinario) (bool, error) {
 	} else if HasSpecialCharacters(vet.ApellidoM) {
 		return false, errors.New("apellidoM cannot contain special characters")
 	}
-
 	// Check if fullname fields are valid according
 	// to the length stablished on config file
 	if len(vet.Nombre) < Config.DevConfiguration.Parameters.NameMinLength || len(vet.Nombre) > Config.DevConfiguration.Parameters.NameMaxLength {
@@ -103,7 +106,6 @@ func isFullNameValid(vet *db.Veterinario) (bool, error) {
 	} else if len(vet.ApellidoM) < Config.DevConfiguration.Parameters.ApellidoMMinLength || len(vet.ApellidoM) > Config.DevConfiguration.Parameters.ApellidoMMaxLength {
 		return false, fmt.Errorf("apellidoM must be at least %d characters long and no more than %d characters long", Config.DevConfiguration.Parameters.ApellidoMMinLength, Config.DevConfiguration.Parameters.ApellidoMMaxLength)
 	}
-
 	return true, nil
 }
 
@@ -120,6 +122,9 @@ func isPasswordInputValid(password string, pwdMinLength int, pwdMaxLength int) (
 	return true, nil
 }
 
+// IsPhoneValid is a function that checks if a phone number is valid
+// A phone number is valid if it is not longer than 20 characters
+// and not shorter than 5 characters
 func isPhoneValid(vet *db.Veterinario) (bool, error) {
 	if vet.Telefono.Valid {
 		if len(vet.Telefono.String) < 5 || len(vet.Telefono.String) > 20 {
@@ -129,6 +134,9 @@ func isPhoneValid(vet *db.Veterinario) (bool, error) {
 	return true, nil
 }
 
+// IsValidImageName is a function that checks if an image name is valid
+// A valid image name is a string that contains only letters, numbers,
+// dashes and underscores, and ends with a valid image extension
 func isValidImageName(imageName string) bool {
 	pattern := "^[a-zA-Z0-9-_]+\\.[a-zA-Z]{2,4}$"
 	match, _ := regexp.MatchString(pattern, imageName)
