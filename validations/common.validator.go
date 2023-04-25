@@ -6,6 +6,7 @@ import (
 	"regexp"
 
 	"github.com/HouseCham/VetMate/config"
+	db "github.com/HouseCham/VetMate/database/sql"
 )
 
 var Config *config.Config
@@ -16,9 +17,9 @@ func ShareConfigFile(config *config.Config) {
 	Config = config
 }
 
-func validateUserOrVet(nombre string, apellidoP string, apellidoM string, password string, email string, telefono string, pwdMinLength int, pwdMaxLength int) (bool, error) {
+func validateUserOrVetLogin(vet *db.Veterinario, password string, email string, telefono string, pwdMinLength int, pwdMaxLength int) (bool, error) {
 	// Check if fullname is valid
-	if isObjectValid, err := isFullNameValid(nombre, apellidoP, apellidoM); !isObjectValid {
+	if isFullnameValid, err := isFullNameValid(vet); !isFullnameValid {
 		return false, err
 	}
 	// Check if password is valid
@@ -30,8 +31,21 @@ func validateUserOrVet(nombre string, apellidoP string, apellidoM string, passwo
 		return false, err
 	}
 	// Check if optional fields are not longer than specified
-	if len(telefono) > 20 {
-		return false, errors.New("telefono must be no more than 20 characters long")
+	if isPhoneValid, err := isPhoneValid(vet); !isPhoneValid {
+		return false, err
+	}
+	return true, nil
+}
+
+func validateUserOrVetUpdate(vet *db.Veterinario) (bool, error) {
+	if isFullnameValid, err := isFullNameValid(vet); !isFullnameValid {
+		return false, err
+	}
+	if isPhoneValid, err := isPhoneValid(vet); !isPhoneValid {
+		return false, err
+	}
+	if !isValidImageName(vet.ImgUrl.String) {
+		return false, errors.New("img url is not valid")
 	}
 	return true, nil
 }
@@ -62,31 +76,31 @@ func isEmailValid(email string) (bool, error) {
 // IsFullNameValid is a function that checks if a fullname is valid
 // A fullname is valid if it is not empty, does not contain special characters,
 // and is at least 2 characters long and no longer than db specified
-func isFullNameValid(nombre string, apellidoP string, apellidoM string) (bool, error) {
+func isFullNameValid(vet *db.Veterinario) (bool, error) {
 	// Check if required fields are empty
-	if nombre == "" {
+	if vet.Nombre == "" {
 		return false, errors.New("nombre is required")
-	} else if apellidoP == "" {
+	} else if vet.ApellidoP == "" {
 		return false, errors.New("apellidoP is required")
-	} else if apellidoM == "" {
+	} else if vet.ApellidoM == "" {
 		return false, errors.New("apellidoM is required")
 	}
 	// Check fullname fields for special characters
-	if HasSpecialCharacters(nombre) {
+	if HasSpecialCharacters(vet.Nombre) {
 		return false, errors.New("nombre cannot contain special characters")
-	} else if HasSpecialCharacters(apellidoP) {
+	} else if HasSpecialCharacters(vet.ApellidoP) {
 		return false, errors.New("apellidoP cannot contain special characters")
-	} else if HasSpecialCharacters(apellidoM) {
+	} else if HasSpecialCharacters(vet.ApellidoM) {
 		return false, errors.New("apellidoM cannot contain special characters")
 	}
 
 	// Check if fullname fields are valid according
 	// to the length stablished on config file
-	if len(nombre) < Config.DevConfiguration.Parameters.NameMinLength || len(nombre) > Config.DevConfiguration.Parameters.NameMaxLength {
+	if len(vet.Nombre) < Config.DevConfiguration.Parameters.NameMinLength || len(vet.Nombre) > Config.DevConfiguration.Parameters.NameMaxLength {
 		return false, fmt.Errorf("nombre must be at least %d characters long and no more than %d characters long", Config.DevConfiguration.Parameters.NameMinLength, Config.DevConfiguration.Parameters.NameMaxLength)
-	} else if len(apellidoP) < Config.DevConfiguration.Parameters.ApellidoPMinLength || len(apellidoP) > Config.DevConfiguration.Parameters.ApellidoPMaxLength {
+	} else if len(vet.ApellidoP) < Config.DevConfiguration.Parameters.ApellidoPMinLength || len(vet.ApellidoP) > Config.DevConfiguration.Parameters.ApellidoPMaxLength {
 		return false, fmt.Errorf("apellidoP must be at least %d characters long and no more than %d characters long", Config.DevConfiguration.Parameters.ApellidoPMinLength, Config.DevConfiguration.Parameters.ApellidoPMaxLength)
-	} else if len(apellidoM) < Config.DevConfiguration.Parameters.ApellidoMMinLength || len(apellidoM) > Config.DevConfiguration.Parameters.ApellidoMMaxLength {
+	} else if len(vet.ApellidoM) < Config.DevConfiguration.Parameters.ApellidoMMinLength || len(vet.ApellidoM) > Config.DevConfiguration.Parameters.ApellidoMMaxLength {
 		return false, fmt.Errorf("apellidoM must be at least %d characters long and no more than %d characters long", Config.DevConfiguration.Parameters.ApellidoMMinLength, Config.DevConfiguration.Parameters.ApellidoMMaxLength)
 	}
 
@@ -104,4 +118,17 @@ func isPasswordInputValid(password string, pwdMinLength int, pwdMaxLength int) (
 		return false, fmt.Errorf("password length must be between %d and %d characters long", pwdMinLength, pwdMaxLength)
 	}
 	return true, nil
+}
+
+func isPhoneValid(vet *db.Veterinario) (bool, error) {
+	if len(vet.Telefono.String) > 20 || len(vet.Telefono.String) < 5 || vet.Telefono.String == "" {
+		return false, errors.New("telefono must be at least 5 and no more than 20 characters long")
+	}
+	return true, nil
+}
+
+func isValidImageName(imageName string) bool {
+    pattern := "^[a-zA-Z0-9-_]+\\.[a-zA-Z]{2,4}$"
+    match, _ := regexp.MatchString(pattern, imageName)
+    return match
 }

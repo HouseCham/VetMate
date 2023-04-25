@@ -27,5 +27,5 @@ WHERE email = ?;
 
 -- name: UpdateVet :exec
 UPDATE veterinarios
-SET nombre = ?, apellido_p = ?, apellido_m = ?, telefono = ?, img_url = ?
+SET nombre = ?, apellido_p = ?, apellido_m = ?, telefono = ?, img_url = ?, fecha_update = NOW()
 WHERE id = ?;

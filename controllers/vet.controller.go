@@ -15,7 +15,7 @@ import (
 // InsertNewVet is a function that inserts a new vet
 // to the database
 func InsertNewVet(c *fiber.Ctx) error {
-	var request db.InsertNewVetParams
+	var request db.Veterinario
 	var err error
 
 	// Parse request body from JSON to struct
@@ -36,7 +36,7 @@ func InsertNewVet(c *fiber.Ctx) error {
 
 	// Validate request body
 	// if not valid, return 400
-	if isValid, err := validations.ValidateVet(request); !isValid {
+	if isValid, err := validations.ValidateVet(&request, 1); !isValid {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
 			"message": "Invalid request body",
@@ -55,7 +55,18 @@ func InsertNewVet(c *fiber.Ctx) error {
 		})
 	}
 
-	return Queries.InsertNewVet(c.Context(), request)
+	// Mapping request body to InsertNewVetParams struct
+	params := db.InsertNewVetParams{
+		Nombre:       request.Nombre,
+		ApellidoP:    request.ApellidoP,
+		ApellidoM:    request.ApellidoM,
+		PasswordHash: request.PasswordHash,
+		Email:        request.Email,
+		Telefono:     request.Telefono,
+		ImgUrl:       request.ImgUrl,
+	}
+
+	return Queries.InsertNewVet(c.Context(), params)
 }
 
 // GetVetById is a function that gets the vet info
@@ -166,7 +177,6 @@ func LoginVet(c *fiber.Ctx) error {
 // UpdateVet is a function that updates the vet info
 // by the vet id from the url
 func UpdateVet(c *fiber.Ctx) error {
-	
 	// Get the vetId from the request context
 	// If variable not found or not of type string
 	// return 500 with error message
@@ -179,7 +189,7 @@ func UpdateVet(c *fiber.Ctx) error {
 		})
 	}
 
-	var request db.UpdateVetParams
+	var request db.Veterinario
 
 	// Parse request body from JSON to struct
 	c.BodyParser(&request)
@@ -191,15 +201,25 @@ func UpdateVet(c *fiber.Ctx) error {
 
 	// Validate request body
 	// if not valid, return 400
-	// if isValid, err := validations.ValidateVetUpdate(request); !isValid {
-	// 	c.Status(fiber.StatusBadRequest)
-	// 	return c.JSON(fiber.Map{
-	// 		"message": "Invalid request body",
-	// 		"error":   err.Error(),
-	// 	})
-	// }
+	if isValid, err := validations.ValidateVet(&request, 2); !isValid {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "Invalid request body",
+			"error":   err.Error(),
+		})
+	}
 
-	return Queries.UpdateVet(c.Context(), request)
+	// Mapping request body to db.UpdateVetParams struct
+	params := db.UpdateVetParams{
+		ID:           request.ID,
+		Nombre:       request.Nombre,
+		ApellidoP:    request.ApellidoP,
+		ApellidoM:    request.ApellidoM,
+		Telefono:     request.Telefono,
+		ImgUrl:       request.ImgUrl,
+	}
+
+	return Queries.UpdateVet(c.Context(), params)
 }
 
 func getIdFromRequestContext(c *fiber.Ctx) (int32, string, error) {
