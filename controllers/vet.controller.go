@@ -15,7 +15,6 @@ import (
 // InsertNewVet is a function that inserts a new vet
 // to the database
 func InsertNewVet(c *fiber.Ctx) error {
-	isEmailUsedChan := make(chan IsEmailUsedChan)
 
 	var request db.Veterinario
 	var err error
@@ -28,15 +27,12 @@ func InsertNewVet(c *fiber.Ctx) error {
 
 	// Check if email is already in use
 	// set false as second parameter in order to check for vet emails
-	go checkEmailAlreadyInUse(isEmailUsedChan, request.Email, false, c)
-	for val := range isEmailUsedChan {
-		if val.Err != nil {
-			c.Status(val.Status)
-			return c.JSON(fiber.Map{
-				"message": val.Message,
-				"error":   val.Err.Error(),
-			})
-		}
+	if message, err, status :=  checkEmailAlreadyInUse(request.Email, false, c); err != nil {
+		c.Status(status)
+		return c.JSON(fiber.Map{
+			"message": message,
+			"error":   err.Error(),
+		})
 	}
 
 	// Validate request body
@@ -230,7 +226,7 @@ func getIdFromRequestContext(c *fiber.Ctx) (int32, string, error) {
 	// Variable not found or not of type string
 	vetIdStr, ok := c.Locals("userId").(string)
 	if !ok {
-		return 0, "Error", errors.New("Error getting vet id")
+		return 0, "Error", errors.New("error getting vet id")
 	}
 
 	// Convert the vetIdStr to int32

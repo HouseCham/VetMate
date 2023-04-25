@@ -10,8 +10,6 @@ import (
 )
 
 func InsertNewUser(c *fiber.Ctx) error {
-	isEmailUsedChan := make(chan IsEmailUsedChan)
-
 	var request db.InsertNewUserParams
 	var err error
 
@@ -22,15 +20,12 @@ func InsertNewUser(c *fiber.Ctx) error {
 	trimInputFields(&request)
 
 	// Check if email is already in use
-	go checkEmailAlreadyInUse(isEmailUsedChan, request.Email, true, c)
-	for val := range isEmailUsedChan {
-		if val.Err != nil {
-			c.Status(val.Status)
-			return c.JSON(fiber.Map{
-				"message": val.Message,
-				"error":   val.Err.Error(),
-			})
-		}
+	if message, err, status :=  checkEmailAlreadyInUse(request.Email, true, c); err != nil {
+		c.Status(status)
+		return c.JSON(fiber.Map{
+			"message": message,
+			"error":   err.Error(),
+		})
 	}
 
 	// Validating user request parameters
