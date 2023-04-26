@@ -25,7 +25,7 @@ func (q *Queries) CheckVetEmailExists(ctx context.Context, email string) (int64,
 
 const deleteVet = `-- name: DeleteVet :exec
 UPDATE veterinarios
-SET fecha_update = NOW()
+SET fecha_delete = NOW()
 WHERE id = ?
 `
 

@@ -1,7 +1,5 @@
 -- name: GetVetMainInfoById :one
-SELECT id, nombre, apellido_p, apellido_m, email, telefono, img_url
-FROM veterinarios
-WHERE id = ?;
+CALL getVetMainInfoById(?)
 
 -- name: InsertNewVet :exec
 INSERT INTO veterinarios (
@@ -31,5 +29,5 @@ WHERE id = ?;
 
 -- name: DeleteVet :exec
 UPDATE veterinarios
-SET fecha_update = NOW()
+SET fecha_delete = NOW()
 WHERE id = ?;
