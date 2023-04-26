@@ -27,7 +27,7 @@ func InsertNewVet(c *fiber.Ctx) error {
 
 	// Check if email is already in use
 	// set false as second parameter in order to check for vet emails
-	if message, err, status :=  checkEmailAlreadyInUse(request.Email, false, c); err != nil {
+	if message, status, err :=  checkEmailAlreadyInUse(request.Email, false, c); err != nil {
 		c.Status(status)
 		return c.JSON(fiber.Map{
 			"message": message,
@@ -37,7 +37,7 @@ func InsertNewVet(c *fiber.Ctx) error {
 
 	// Validate request body
 	// if not valid, return 400
-	if isValid, err := validations.ValidateVet(&request, 1); !isValid {
+	if err := validations.ValidateRequest(&request, 1); err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
 			"message": "Invalid request body",
@@ -131,7 +131,7 @@ func UpdateVet(c *fiber.Ctx) error {
 
 	// Validate request body
 	// if not valid, return 400
-	if isValid, err := validations.ValidateVet(&request, 2); !isValid {
+	if err := validations.ValidateRequest(&request, 2); err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
 			"message": "Invalid request body",
@@ -166,7 +166,7 @@ func (loginRequest *LoginRequest) Trim() {
 // LoginVet is a function that logs in the vet
 // by checking the email and password
 func LoginVet(c *fiber.Ctx) error {
-	var request LoginRequest
+	var request db.Veterinario
 	var err error
 
 	// Parse request body from JSON to struct
@@ -177,7 +177,7 @@ func LoginVet(c *fiber.Ctx) error {
 
 	// Validate request body
 	// if not valid, return 400
-	if isValid, err := validations.ValidateVetLogin(request.Email, request.Password); !isValid {
+	if err := validations.ValidateRequest(&request, 3); err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
 			"message": "Invalid request body",
@@ -195,7 +195,7 @@ func LoginVet(c *fiber.Ctx) error {
 	}
 	// Compare password
 	// if error occurs, return 500
-	if err := util.CheckPassword(request.Password, vet.PasswordHash); err != nil {
+	if err := util.CheckPassword(request.PasswordHash, vet.PasswordHash); err != nil {
 		c.Status(fiber.StatusUnauthorized)
 		return c.JSON(fiber.Map{
 			"message": "Wrong password",

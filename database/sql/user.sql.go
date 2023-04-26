@@ -77,8 +77,17 @@ INSERT INTO usuarios(
     apellido_m,
     email,
     telefono,
-    password_hash
-) VALUES (?, ?, ?, ?, ?, ?)
+    password_hash,
+    calle,
+    num_ext,
+    num_int,
+    colonia,
+    cp,
+    ciudad,
+    estado,
+    pais,
+    referencia
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type InsertNewUserParams struct {
@@ -88,6 +97,15 @@ type InsertNewUserParams struct {
 	Email        string         `json:"email"`
 	Telefono     sql.NullString `json:"telefono"`
 	PasswordHash string         `json:"password_hash"`
+	Calle        string         `json:"calle"`
+	NumExt       string         `json:"num_ext"`
+	NumInt       sql.NullString `json:"num_int"`
+	Colonia      string         `json:"colonia"`
+	Cp           string         `json:"cp"`
+	Ciudad       string         `json:"ciudad"`
+	Estado       string         `json:"estado"`
+	Pais         string         `json:"pais"`
+	Referencia   sql.NullString `json:"referencia"`
 }
 
 func (q *Queries) InsertNewUser(ctx context.Context, arg InsertNewUserParams) error {
@@ -98,6 +116,15 @@ func (q *Queries) InsertNewUser(ctx context.Context, arg InsertNewUserParams) er
 		arg.Email,
 		arg.Telefono,
 		arg.PasswordHash,
+		arg.Calle,
+		arg.NumExt,
+		arg.NumInt,
+		arg.Colonia,
+		arg.Cp,
+		arg.Ciudad,
+		arg.Estado,
+		arg.Pais,
+		arg.Referencia,
 	)
 	return err
 }

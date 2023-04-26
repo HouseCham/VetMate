@@ -16,7 +16,17 @@
             "apellidoP_min_length": 2,
             "apellidoP_max_length": 50,
             "apellidoM_min_length": 2,
-            "apellidoM_max_length": 50
+            "apellidoM_max_length": 50,
+            "address": {
+                "street_max_length": 150,
+                "neighborhood_max_length": 50,
+                "city_max_length": 50,
+                "state_max_length": 50,
+                "country_max_length": 50,
+                "zip_code_max_length": 10,
+                "ext_number_max_length": 10,
+                "int_number_max_length": 10
+            }
         },
         "jwt": {
             "secret": "78^baWz7^TGYSU3%kc9O&$yHXXvlCS!C7KO35Sl#",

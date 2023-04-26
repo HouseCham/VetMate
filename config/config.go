@@ -31,15 +31,27 @@ type JWT struct {
 	CookieName string `mapstructure:"cookie_name"`
 }
 
+type Address struct {
+	StreetMaxLength       int `mapstructure:"street_max_length"`
+	StateMaxLength        int `mapstructure:"state_max_length"`
+	CityMaxLength         int `mapstructure:"city_max_length"`
+	NeighborhoodMaxLength int `mapstructure:"neighborhood_max_length"`
+	CountryMaxLength      int `mapstructure:"country_max_length"`
+	ZipCodeMaxLength      int `mapstructure:"zip_code_max_length"`
+	ExtNumberMaxLength    int `mapstructure:"ext_number_max_length"`
+	IntNumberMaxLength    int `mapstructure:"int_number_max_length"`
+}
+
 type Parameters struct {
-	PwdMinLength       int `mapstructure:"pwd_min_length"`
-	PwdMaxLength       int `mapstructure:"pwd_max_length"`
-	NameMinLength      int `mapstructure:"name_min_length"`
-	NameMaxLength      int `mapstructure:"name_max_length"`
-	ApellidoPMinLength int `mapstructure:"apellidoP_min_length"`
-	ApellidoPMaxLength int `mapstructure:"apellidoP_max_length"`
-	ApellidoMMinLength int `mapstructure:"apellidoM_min_length"`
-	ApellidoMMaxLength int `mapstructure:"apellidoM_max_length"`
+	PwdMinLength       int     `mapstructure:"pwd_min_length"`
+	PwdMaxLength       int     `mapstructure:"pwd_max_length"`
+	NameMinLength      int     `mapstructure:"name_min_length"`
+	NameMaxLength      int     `mapstructure:"name_max_length"`
+	ApellidoPMinLength int     `mapstructure:"apellidoP_min_length"`
+	ApellidoPMaxLength int     `mapstructure:"apellidoP_max_length"`
+	ApellidoMMinLength int     `mapstructure:"apellidoM_min_length"`
+	ApellidoMMaxLength int     `mapstructure:"apellidoM_max_length"`
+	Address            Address `mapstructure:"address"`
 }
 
 func LoadConfiguration() (Config, error) {

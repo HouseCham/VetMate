@@ -5,8 +5,17 @@ INSERT INTO usuarios(
     apellido_m,
     email,
     telefono,
-    password_hash
-) VALUES (?, ?, ?, ?, ?, ?);
+    password_hash,
+    calle,
+    num_ext,
+    num_int,
+    colonia,
+    cp,
+    ciudad,
+    estado,
+    pais,
+    referencia
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: CheckUserEmailExists :one
 SELECT COUNT(*)

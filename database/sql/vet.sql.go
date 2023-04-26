@@ -23,6 +23,17 @@ func (q *Queries) CheckVetEmailExists(ctx context.Context, email string) (int64,
 	return count, err
 }
 
+const deleteVet = `-- name: DeleteVet :exec
+UPDATE veterinarios
+SET fecha_update = NOW()
+WHERE id = ?
+`
+
+func (q *Queries) DeleteVet(ctx context.Context, id int32) error {
+	_, err := q.db.ExecContext(ctx, deleteVet, id)
+	return err
+}
+
 const getVetByEmail = `-- name: GetVetByEmail :one
 SELECT id, password_hash
 FROM veterinarios

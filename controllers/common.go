@@ -52,7 +52,7 @@ type IsEmailUsedChan struct {
 // if the email is already in use by checking the database.
 // if isUserTable is true, then it means we are trying to check if an user email already exists in database
 // otherwise, if it is false, we are trying to check for a vet's email.
-func checkEmailAlreadyInUse(email string, isUserTable bool, c *fiber.Ctx) (string, error, int) {
+func checkEmailAlreadyInUse(email string, isUserTable bool, c *fiber.Ctx) (string, int, error) {
 	var emailExists int64
 	var err error
 
@@ -63,9 +63,9 @@ func checkEmailAlreadyInUse(email string, isUserTable bool, c *fiber.Ctx) (strin
 	}
 
 	if err != nil {
-		return "there was an error on the server, try later", err, fiber.StatusInternalServerError
+		return "there was an error on the server, try later", fiber.StatusInternalServerError, err
 	} else if emailExists > 0 {
-		return "conflict", errors.New("email already in use"), fiber.StatusConflict
+		return "conflict", fiber.StatusConflict, errors.New("email already in use")
 	}
-	return "success", nil, fiber.StatusOK
+	return "success", fiber.StatusOK, nil
 }

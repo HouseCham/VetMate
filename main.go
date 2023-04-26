@@ -8,6 +8,7 @@ import (
 	"github.com/HouseCham/VetMate/auth"
 	"github.com/HouseCham/VetMate/config"
 	"github.com/HouseCham/VetMate/controllers"
+	db "github.com/HouseCham/VetMate/database/sql"
 	"github.com/HouseCham/VetMate/middleware"
 	"github.com/HouseCham/VetMate/routes"
 	"github.com/HouseCham/VetMate/validations"
@@ -58,4 +59,5 @@ func ShareConfigFile(config config.Config) {
 	validations.ShareConfigFile(&config)
 	auth.ShareConfigFile(&config)
 	middleware.ShareConfigFile(&config)
+	db.ShareConfigFile(&config)
 }

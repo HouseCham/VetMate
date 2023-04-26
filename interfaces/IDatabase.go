@@ -1,11 +1,9 @@
 package interfaces
 
-type IDatabase interface {
-	InsertNew() error
-	Update() error
-	Delete() error
-	FindAll() error
-	FindById() error
+type IDatabaseValidation interface {
+	ValidateNewRegister() error
+	ValidateUpdate() error
+	ValidateLogin() error
 }
 
 type INewInsertParams interface {
