@@ -64,7 +64,6 @@ func InsertNewVet(c *fiber.Ctx) error {
 		PasswordHash: request.PasswordHash,
 		Email:        request.Email,
 		Telefono:     request.Telefono,
-		ImgUrl:       request.ImgUrl,
 	}
 
 	return Queries.InsertNewVet(c.Context(), params)

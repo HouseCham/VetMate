@@ -9,14 +9,18 @@ import (
 )
 
 type DireccionLocale struct {
-	ID        int32          `json:"id"`
-	IDNegocio sql.NullInt32  `json:"id_negocio"`
-	Calle     string         `json:"calle"`
-	Cp        string         `json:"cp"`
-	NumExt    string         `json:"num_ext"`
-	NumInt    sql.NullString `json:"num_int"`
-	Colonia   string         `json:"colonia"`
-	Estado    string         `json:"estado"`
+	ID            int32          `json:"id"`
+	IDNegocio     sql.NullInt32  `json:"id_negocio"`
+	Calle         string         `json:"calle"`
+	Cp            string         `json:"cp"`
+	NumExt        string         `json:"num_ext"`
+	NumInt        sql.NullString `json:"num_int"`
+	Colonia       string         `json:"colonia"`
+	Estado        string         `json:"estado"`
+	Pais          string         `json:"pais"`
+	FechaRegistro sql.NullTime   `json:"fecha_registro"`
+	FechaUpdate   sql.NullTime   `json:"fecha_update"`
+	FechaDelete   sql.NullTime   `json:"fecha_delete"`
 }
 
 type Familia struct {
@@ -31,17 +35,20 @@ type Mascota struct {
 	RazaComentario              sql.NullString `json:"raza_comentario"`
 	Nombre                      sql.NullString `json:"nombre"`
 	Edad                        sql.NullInt32  `json:"edad"`
+	ProximaFechaVacunacion      sql.NullTime   `json:"proxima_fecha_vacunacion"`
+	ProximaFechaDesparasitacion sql.NullTime   `json:"proxima_fecha_desparasitacion"`
 	FechaRegistro               sql.NullTime   `json:"fecha_registro"`
 	FechaUpdate                 sql.NullTime   `json:"fecha_update"`
 	FechaDelete                 sql.NullTime   `json:"fecha_delete"`
-	ProximaFechaVacunacion      sql.NullTime   `json:"proxima_fecha_vacunacion"`
-	ProximaFechaDesparasitacion sql.NullTime   `json:"proxima_fecha_desparasitacion"`
 }
 
 type Negocio struct {
-	ID            int32  `json:"id"`
-	NombreNegocio string `json:"nombre_negocio"`
-	Guid          string `json:"guid"`
+	ID            int32        `json:"id"`
+	NombreNegocio string       `json:"nombre_negocio"`
+	Guid          string       `json:"guid"`
+	FechaRegistro sql.NullTime `json:"fecha_registro"`
+	FechaUpdate   sql.NullTime `json:"fecha_update"`
+	FechaDelete   sql.NullTime `json:"fecha_delete"`
 }
 
 type Raza struct {
@@ -58,10 +65,20 @@ type Usuario struct {
 	Email         string         `json:"email"`
 	Telefono      sql.NullString `json:"telefono"`
 	PasswordHash  string         `json:"password_hash"`
+	EmailValidado sql.NullInt32  `json:"email_validado"`
+	ImgUrl        sql.NullString `json:"img_url"`
+	Calle         string         `json:"calle"`
+	NumExt        string         `json:"num_ext"`
+	NumInt        sql.NullString `json:"num_int"`
+	Colonia       string         `json:"colonia"`
+	Cp            string         `json:"cp"`
+	Ciudad        string         `json:"ciudad"`
+	Estado        string         `json:"estado"`
+	Pais          string         `json:"pais"`
+	Referencia    sql.NullString `json:"referencia"`
 	FechaRegistro sql.NullTime   `json:"fecha_registro"`
 	FechaUpdate   sql.NullTime   `json:"fecha_update"`
 	FechaDelete   sql.NullTime   `json:"fecha_delete"`
-	EmailValidado sql.NullInt32  `json:"email_validado"`
 }
 
 type Veterinario struct {
@@ -74,8 +91,8 @@ type Veterinario struct {
 	Telefono      sql.NullString `json:"telefono"`
 	ImgUrl        sql.NullString `json:"img_url"`
 	PasswordHash  string         `json:"password_hash"`
+	EmailValidado sql.NullInt32  `json:"email_validado"`
 	FechaRegistro sql.NullTime   `json:"fecha_registro"`
 	FechaUpdate   sql.NullTime   `json:"fecha_update"`
 	FechaDelete   sql.NullTime   `json:"fecha_delete"`
-	EmailValidado sql.NullInt32  `json:"email_validado"`
 }

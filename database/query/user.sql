@@ -12,3 +12,13 @@ INSERT INTO usuarios(
 SELECT COUNT(*)
 FROM usuarios
 WHERE email = ?;
+
+-- name: GetUserByEmail :one
+SELECT id, password_hash
+FROM usuarios
+WHERE email = ?;
+
+-- name: GetUserMainInfoById :one
+SELECT nombre, apellido_p, apellido_m, email, telefono, img_url
+FROM usuarios
+WHERE id = ?;

@@ -6,10 +6,21 @@ CREATE TABLE `usuarios` (
   `email` varchar(150) NOT NULL,
   `telefono` varchar(20),
   `password_hash` varchar(255) NOT NULL,
+  `email_validado` tinyint DEFAULT 0,
+  `img_url` varchar(50),
+  `calle` varchar(150) NOT NULL,
+  `num_ext` varchar(10) NOT NULL,
+  `num_int` varchar(10),
+  `colonia` varchar(50) NOT NULL,
+  `cp` varchar(10) NOT NULL,
+  `ciudad` varchar(50) NOT NULL,
+  `estado` varchar(50) NOT NULL,
+  `pais` varchar(50) NOT NULL,
+  `referencia` varchar(255),
+
   `fecha_registro` timestamp DEFAULT (now()),
   `fecha_update` timestamp,
-  `fecha_delete` timestamp,
-  `email_validado` tinyint DEFAULT 0
+  `fecha_delete` timestamp
 );
 
 CREATE TABLE `mascotas` (
@@ -19,11 +30,12 @@ CREATE TABLE `mascotas` (
   `raza_comentario` varchar(100),
   `nombre` varchar(100),
   `edad` TINYINT,
+  `proxima_fecha_vacunacion` timestamp,
+  `proxima_fecha_desparasitacion` timestamp,
+
   `fecha_registro` timestamp DEFAULT (now()),
   `fecha_update` timestamp,
-  `fecha_delete` timestamp,
-  `proxima_fecha_vacunacion` timestamp,
-  `proxima_fecha_desparasitacion` timestamp
+  `fecha_delete` timestamp
 );
 
 CREATE TABLE `familias` (
@@ -61,10 +73,6 @@ ALTER TABLE `razas` ADD FOREIGN KEY (`familia_id`) REFERENCES `familias` (`id`);
 INSERT INTO `familias` (`nombre`) VALUES('Cánido'), ('Félido');
 
 -- Razas de perros
-INSERT INTO `razas` (`familia_id`, `nombre`) VALUES(1, 'Otro'), (1, 'Shih tzu'),(1, 'Perdiguero de Burgos'),(1, 'Perdiguero Portugués'),(1, 'Cobrador de Pelo Rizado'),(1, 'Cobrador de Pelo Liso'),(1, 'Silky Terrier Australiano'),
-(1, 'Leonberger'),(1, 'Weimaraner'),(1, 'Braco de Borbón'),(1, 'Beagle'),(1, 'Border Collie'),(1, 'Pastor Belga Tervueren'),(1, 'Bobtail/Pastor Inglés'),(1, 'Fox Terrier de Pelo Duro'),(1, 'Whippet'),
-(1, 'Braco Alemán de Pelo Corto'),(1, 'Pinscher Miniatura'),(1, 'Bichón Maltés'),(1, 'Manchester Terrier'),(1, 'Terrier Tibetano'),(1, 'Lancashire Heeler'),(1, 'Lobero Irlandés'),(1, 'Perro de Agua Irlandés'),(1, 'Alaskan Malamute'),
-(1, 'Pastor Australiano de Cola Corta'),(1, 'Otterhound / Perro de Nutria'),(1, 'Perro Pila Angentino'),(1, 'Shepadoodle'),(1, 'Perro Sueco de Laponia'),(1, 'Tosa Inu'),(1, 'Basenji'),(1, 'Pastor Ovejero Australiano'),(1, 'Alabai');
+INSERT INTO `razas` (`familia_id`, `nombre`) VALUES(1, 'Otro'), (1, 'Shih tzu'),(1, 'Perdiguero de Burgos'),(1, 'Perdiguero Portugués'),(1, 'Cobrador de Pelo Rizado'),(1, 'Cobrador de Pelo Liso'),(1, 'Silky Terrier Australiano');
 
 -- Razas de gatos
-

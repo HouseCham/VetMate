@@ -11,12 +11,11 @@ INSERT INTO veterinarios (
     apellido_m,
     email,
     telefono,
-    img_url,
     password_hash
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?);
 
 -- name: GetVetByEmail :one
-SELECT id, email, password_hash
+SELECT id, password_hash
 FROM veterinarios
 WHERE email = ?;
 

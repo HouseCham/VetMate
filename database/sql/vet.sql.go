@@ -24,21 +24,20 @@ func (q *Queries) CheckVetEmailExists(ctx context.Context, email string) (int64,
 }
 
 const getVetByEmail = `-- name: GetVetByEmail :one
-SELECT id, email, password_hash
+SELECT id, password_hash
 FROM veterinarios
 WHERE email = ?
 `
 
 type GetVetByEmailRow struct {
 	ID           int32  `json:"id"`
-	Email        string `json:"email"`
 	PasswordHash string `json:"password_hash"`
 }
 
 func (q *Queries) GetVetByEmail(ctx context.Context, email string) (GetVetByEmailRow, error) {
 	row := q.db.QueryRowContext(ctx, getVetByEmail, email)
 	var i GetVetByEmailRow
-	err := row.Scan(&i.ID, &i.Email, &i.PasswordHash)
+	err := row.Scan(&i.ID, &i.PasswordHash)
 	return i, err
 }
 
@@ -81,9 +80,8 @@ INSERT INTO veterinarios (
     apellido_m,
     email,
     telefono,
-    img_url,
     password_hash
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+) VALUES (?, ?, ?, ?, ?, ?, ?)
 `
 
 type InsertNewVetParams struct {
@@ -93,7 +91,6 @@ type InsertNewVetParams struct {
 	ApellidoM     string         `json:"apellido_m"`
 	Email         string         `json:"email"`
 	Telefono      sql.NullString `json:"telefono"`
-	ImgUrl        sql.NullString `json:"img_url"`
 	PasswordHash  string         `json:"password_hash"`
 }
 
@@ -105,7 +102,6 @@ func (q *Queries) InsertNewVet(ctx context.Context, arg InsertNewVetParams) erro
 		arg.ApellidoM,
 		arg.Email,
 		arg.Telefono,
-		arg.ImgUrl,
 		arg.PasswordHash,
 	)
 	return err
