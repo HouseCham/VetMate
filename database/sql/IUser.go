@@ -104,6 +104,8 @@ func(userLogin *Usuario) ValidateLogin() error {
 	return nil
 }
 
+// isAddressValid is a function that validates the address
+// fields for the InsertNewUser function
 func isAddressValid(calle string, neighborhood string, city string, state string, zipcode string, extNum string, intNum string) error {
 	// Check if not null values are empty
 	if calle == "" {
@@ -122,41 +124,41 @@ func isAddressValid(calle string, neighborhood string, city string, state string
 
 	// Check if values are not longer than specified
 	if len(calle) > Config.DevConfiguration.Parameters.Address.StreetMaxLength {
-		return fmt.Errorf("street can't be longer than %d", Config.DevConfiguration.Parameters.Address.StreetMaxLength)
+		return fmt.Errorf("campo calle no puede ser mayor a %d caracteres", Config.DevConfiguration.Parameters.Address.StreetMaxLength)
 	} else if len(neighborhood) > Config.DevConfiguration.Parameters.Address.NeighborhoodMaxLength {
-		return fmt.Errorf("neighborhood can't be longer than %d", Config.DevConfiguration.Parameters.Address.NeighborhoodMaxLength)
+		return fmt.Errorf("campo colonia no puede ser mayor a %d caracteres", Config.DevConfiguration.Parameters.Address.NeighborhoodMaxLength)
 	} else if len(city) > Config.DevConfiguration.Parameters.Address.CityMaxLength {
-		return fmt.Errorf("city can't be longer than %d", Config.DevConfiguration.Parameters.Address.CityMaxLength)
+		return fmt.Errorf("campo ciudad no puede ser mayor a %d caracteres", Config.DevConfiguration.Parameters.Address.CityMaxLength)
 	} else if len(state) > Config.DevConfiguration.Parameters.Address.StateMaxLength {
-		return fmt.Errorf("state can't be longer than %d", Config.DevConfiguration.Parameters.Address.StateMaxLength)
+		return fmt.Errorf("campo estado no puede ser mayor a %d caracteres", Config.DevConfiguration.Parameters.Address.StateMaxLength)
 	} else if len(zipcode) > Config.DevConfiguration.Parameters.Address.ZipCodeMaxLength {
-		return fmt.Errorf("postal can't be longer than %d", Config.DevConfiguration.Parameters.Address.ZipCodeMaxLength)
+		return fmt.Errorf("campo código postal no puede ser mayor a %d caracteres", Config.DevConfiguration.Parameters.Address.ZipCodeMaxLength)
 	} else if len(extNum) > Config.DevConfiguration.Parameters.Address.ExtNumberMaxLength {
-		return fmt.Errorf("external can't be longer than %d", Config.DevConfiguration.Parameters.Address.ExtNumberMaxLength)
+		return fmt.Errorf("campo número ext no puede ser mayor a %d caracteres", Config.DevConfiguration.Parameters.Address.ExtNumberMaxLength)
 	} else if len(intNum) > Config.DevConfiguration.Parameters.Address.IntNumberMaxLength {
-		return fmt.Errorf("internal can't be longer than %d", Config.DevConfiguration.Parameters.Address.IntNumberMaxLength)
+		return fmt.Errorf("campo número int no puede ser mayor a %d caracteres", Config.DevConfiguration.Parameters.Address.IntNumberMaxLength)
 	}
 
 	// Check if address numbers are valid
-	if err := isValidInt(extNum, "external"); err != nil {
+	if err := isValidInt(extNum, "número ext"); err != nil {
 		return err
-    } else if err := isValidInt(zipcode, "zipcode"); err != nil {
+    } else if err := isValidInt(zipcode, "código postal"); err != nil {
 		return err
 	} else if intNum != "" {
-		if err := isValidInt(intNum, "internal"); err != nil {
+		if err := isValidInt(intNum, "número int"); err != nil {
 			return err
 		}
 	}
 
 	// Check if string values have special characters
 	if hasSpecialCharacters(calle) {
-		return errors.New("street has special characters")
+		return errors.New("campo no debe contener caracteres especiales")
 	} else if hasSpecialCharacters(neighborhood) {
-		return errors.New("neighborhood has special characters")
+		return errors.New("campo colonia no debe contener caracteres especiales")
 	} else if hasSpecialCharacters(city) {
-		return errors.New("city has special characters")
+		return errors.New("campo ciudad no debe contener caracteres especiales")
 	} else if hasSpecialCharacters(state) {
-		return errors.New("state has special characters")
+		return errors.New("campo estado no debe contener caracteres especiales")
 	}
 
 	return nil
