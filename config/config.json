@@ -19,7 +19,8 @@
             "apellidoM_max_length": 50
         },
         "jwt": {
-            "secret": "78^baWz7^TGYSU3%kc9O&$yHXXvlCS!C7KO35Sl#"
+            "secret": "78^baWz7^TGYSU3%kc9O&$yHXXvlCS!C7KO35Sl#",
+            "cookie_name": "jwt_token"
         }
     }
 }

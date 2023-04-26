@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// InsertNewUser inserts a new user into the database
 func InsertNewUser(c *fiber.Ctx) error {
 	var request db.InsertNewUserParams
 	var err error
@@ -63,6 +64,8 @@ func InsertNewUser(c *fiber.Ctx) error {
 	return nil
 }
 
+// GetUserByEmail gets a user by email
+// if user does not exist, return 404
 func GetUserById(c *fiber.Ctx) error {
 	return errors.New("not implemented yet")
 }

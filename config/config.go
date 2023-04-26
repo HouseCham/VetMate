@@ -27,7 +27,8 @@ type Database struct {
 }
 
 type JWT struct {
-	Secret string `mapstructure:"secret"`
+	Secret     string `mapstructure:"secret"`
+	CookieName string `mapstructure:"cookie_name"`
 }
 
 type Parameters struct {
