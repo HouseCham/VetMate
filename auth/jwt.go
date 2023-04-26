@@ -18,11 +18,14 @@ func ShareConfigFile(config *config.Config) {
 
 // GenerateJWT is a function that generates a jwt token
 // with the id of the user or vet that is logged in
-func GenerateJWT(id int32) (string, error) {
+// isVet is a boolean that indicates if the user is a vet
+// or not
+func GenerateJWT(id int32, isVet bool) (string, error) {
 	// first we generate the token with the HS256 signing method and
 	// the claims stablished
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": strconv.Itoa(int(id)),
+		"vet": isVet,
 		"exp": time.Now().Add(time.Hour * 1).Unix(),
 	})
 

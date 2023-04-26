@@ -206,7 +206,7 @@ func LoginVet(c *fiber.Ctx) error {
 
 	// Generating jwt
 	// in case of error, returns 500 with error message
-	tokenString, err := auth.GenerateJWT(vet.ID)
+	tokenString, err := auth.GenerateJWT(vet.ID, true)
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError)
 		return c.JSON(fiber.Map{
@@ -221,6 +221,9 @@ func LoginVet(c *fiber.Ctx) error {
 	})
 }
 
+// getIdFromRequestContext is a function that gets the vet id
+// from the request context -> c.Locals("userId")
+// returns the vet id as int32
 func getIdFromRequestContext(c *fiber.Ctx) (int32, string, error) {
 	// Get the variable from the request context
 	// Variable not found or not of type string
