@@ -18,7 +18,7 @@ func InsertNewUser(c *fiber.Ctx) error {
 	c.BodyParser(&request)
 
 	// Trim input fields from request body
-	trimInputFields(&request)
+	purgeInputData(&request)
 
 	// Check if email is already in use
 	if message, status, err :=  checkEmailAlreadyInUse(request.Email, true, c); err != nil {

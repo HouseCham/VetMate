@@ -34,12 +34,13 @@ func createNewQuery() *db.Queries {
 	return db.New(DB)
 }
 
-// TrimInputFields is a function that trims all the
-// input fields from the request body
+// purgeInputData is a function that trims all the
+// input fields and deletes blank spaces from the request body
 // it is an interface function that is used by all
 // the controllers
-func trimInputFields(input interfaces.INewInsertParams) {
+func purgeInputData(input interfaces.INewInsertParams) {
 	input.Trim()
+	input.DeleteBlankFields()
 }
 
 type IsEmailUsedChan struct {

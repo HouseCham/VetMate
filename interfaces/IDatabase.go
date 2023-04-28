@@ -8,4 +8,5 @@ type IDatabaseValidation interface {
 
 type INewInsertParams interface {
 	Trim()
+	DeleteBlankFields()
 }

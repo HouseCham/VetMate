@@ -23,7 +23,7 @@ func InsertNewVet(c *fiber.Ctx) error {
 	c.BodyParser(&request)
 
 	// Trim input fields from request body
-	trimInputFields(&request)
+	purgeInputData(&request)
 
 	// Check if email is already in use
 	// set false as second parameter in order to check for vet emails
@@ -148,7 +148,7 @@ func UpdateVet(c *fiber.Ctx) error {
 	request.ID = vetId
 
 	// Trim input fields from request body
-	trimInputFields(&request)
+	purgeInputData(&request)
 
 	// Validate request body
 	// if not valid, return 400
@@ -170,7 +170,27 @@ func UpdateVet(c *fiber.Ctx) error {
 		ImgUrl:    request.ImgUrl,
 	}
 
-	return Queries.UpdateVet(c.Context(), params)
+	// Starting transaction
+	tx, err := DB.Begin()
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"message": "Error starting transaction",
+			"error":   err.Error(),
+		})
+	}
+	defer tx.Rollback()
+
+	// getting queries with transaction
+	qtx := Queries.WithTx(tx)
+	err = qtx.UpdateVet(c.Context(), params)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"message": "Error updating vet",
+			"error":   err.Error(),
+		})
+	}
+
+	return tx.Commit()
 }
 
 type LoginRequest struct {
@@ -194,7 +214,7 @@ func LoginVet(c *fiber.Ctx) error {
 	c.BodyParser(&request)
 
 	// Trim input fields from request body
-	trimInputFields(&request)
+	purgeInputData(&request)
 
 	// Validate request body
 	// if not valid, return 400

@@ -27,6 +27,23 @@ func (user *Usuario) Trim(){
 	user.Referencia.String = strings.TrimSpace(user.Referencia.String)
 }
 
+func (user *Usuario) DeleteBlankFields(){
+	user.Nombre = strings.ReplaceAll(user.Nombre, " ", "")
+	user.ApellidoP = strings.ReplaceAll(user.ApellidoP, " ", "")
+	user.ApellidoM = strings.ReplaceAll(user.ApellidoM, " ", "")
+	user.Email = strings.ReplaceAll(user.Email, " ", "")
+	user.Telefono.String = strings.ReplaceAll(user.Telefono.String, " ", "")
+	user.PasswordHash = strings.ReplaceAll(user.PasswordHash, " ", "")
+	user.Calle = strings.ReplaceAll(user.Calle, " ", "")
+	user.Colonia = strings.ReplaceAll(user.Colonia, " ", "")
+	user.Ciudad = strings.ReplaceAll(user.Ciudad, " ", "")
+	user.Estado = strings.ReplaceAll(user.Estado, " ", "")
+	user.Cp = strings.ReplaceAll(user.Cp, " ", "")
+	user.Pais = strings.ReplaceAll(user.Pais, " ", "")
+	user.NumExt = strings.ReplaceAll(user.NumExt, " ", "")
+	user.NumInt.String = strings.ReplaceAll(user.NumInt.String, " ", "")
+}
+
 // ValidateNewRegister is a function that validates the
 // request body for the InsertNewUser or InsertNewVet function
 // this function is implemented from IDatabase interface

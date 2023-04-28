@@ -28,6 +28,16 @@ func (vet *Veterinario) Trim() {
 	vet.PasswordHash = strings.TrimSpace(vet.PasswordHash)
 }
 
+func (vet *Veterinario) DeleteBlankFields() {
+	vet.Nombre = strings.ReplaceAll(vet.Nombre, " ", "")
+	vet.ApellidoP = strings.ReplaceAll(vet.ApellidoP, " ", "")
+	vet.ApellidoM = strings.ReplaceAll(vet.ApellidoM, " ", "")
+	vet.Email = strings.ReplaceAll(vet.Email, " ", "")
+	vet.Telefono.String = strings.ReplaceAll(vet.Telefono.String, " ", "")
+	vet.ImgUrl.String = strings.ReplaceAll(vet.ImgUrl.String, " ", "")
+	vet.PasswordHash = strings.ReplaceAll(vet.PasswordHash, " ", "")
+}
+
 // ValidateUser is a function that validates the
 // request body for the InsertNewUser or InsertNewVet function
 func (newVetRegister *Veterinario) ValidateNewRegister() error {
