@@ -1,13 +1,13 @@
 package db
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/HouseCham/VetMate/config"
+	"github.com/HouseCham/VetMate/validations"
 )
 
 var Config *config.Config
@@ -64,7 +64,7 @@ func (vetUpdate *Veterinario) ValidateUpdate() error {
 		}
 	}
 	if err := isValidImageName(vetUpdate.ImgUrl.String); !err {
-		return errors.New("campo imgUrl no válido")
+		return fmt.Errorf(validations.ErrorMessages["imagen"], "imagenUrl")
 	}
 	return nil
 }
@@ -100,9 +100,9 @@ func isEmailValid(email string) error {
 	// match the email against the regular expression
 	// also check if email is not longer than 150 characters
 	if !regex.MatchString(email) {
-		return errors.New("campo email no válido")
+		return fmt.Errorf(validations.ErrorMessages["correo"], "email")
 	} else if len(email) > 150 {
-		return errors.New("campo email no debe superar los 150 caracteres")
+		return fmt.Errorf(validations.ErrorMessages["maximo"], "email", 150)
 	}
 	return nil
 }
@@ -113,28 +113,28 @@ func isEmailValid(email string) error {
 func isFullNameValid(name string, lastnameP string, lastnameM string) error {
 	// Check if required fields are empty
 	if name == "" {
-		return errors.New("campo nombre es requerido")
+		return fmt.Errorf(validations.ErrorMessages["requerido"], "nombre")
 	} else if lastnameP == "" {
-		return errors.New("campo apellido paterno es requerido")
+		return fmt.Errorf(validations.ErrorMessages["requerido"], "apellido paterno")
 	} else if lastnameM == "" {
-		return errors.New("campo apellido materno es requerido")
+		return fmt.Errorf(validations.ErrorMessages["requerido"], "apellido materno")
 	}
 	// Check fullname fields for special characters
 	if hasSpecialCharacters(name) {
-		return errors.New("campo nombre no puede contener caracteres especiales")
+		return fmt.Errorf(validations.ErrorMessages["alfabetico"], "nombre")
 	} else if hasSpecialCharacters(lastnameP) {
-		return errors.New("campo apellido paterno no puede contener caracteres especiales")
+		return fmt.Errorf(validations.ErrorMessages["alfabetico"], "apellido paterno")
 	} else if hasSpecialCharacters(lastnameM) {
-		return errors.New("campo apellido materno no puede contener caracteres especiales")
+		return fmt.Errorf(validations.ErrorMessages["alfabetico"], "apellido materno")
 	}
 	// Check if fullname fields are valid according
 	// to the length stablished on config file
 	if len(name) < Config.DevConfiguration.Parameters.NameMinLength || len(name) > Config.DevConfiguration.Parameters.NameMaxLength {
-		return fmt.Errorf("campo nombre debe tener entre %d y %d caracteres", Config.DevConfiguration.Parameters.NameMinLength, Config.DevConfiguration.Parameters.NameMaxLength)
+		return fmt.Errorf(validations.ErrorMessages["min_max"], "nombre", Config.DevConfiguration.Parameters.NameMinLength, Config.DevConfiguration.Parameters.NameMaxLength)
 	} else if len(lastnameP) < Config.DevConfiguration.Parameters.ApellidoPMinLength || len(lastnameP) > Config.DevConfiguration.Parameters.ApellidoPMaxLength {
-		return fmt.Errorf("campo apellido paterno debe tener entre %d y %d caracteres", Config.DevConfiguration.Parameters.ApellidoPMinLength, Config.DevConfiguration.Parameters.ApellidoPMaxLength)
+		return fmt.Errorf(validations.ErrorMessages["min_max"], "apellido paterno", Config.DevConfiguration.Parameters.ApellidoPMinLength, Config.DevConfiguration.Parameters.ApellidoPMaxLength)
 	} else if len(lastnameM) < Config.DevConfiguration.Parameters.ApellidoMMinLength || len(lastnameM) > Config.DevConfiguration.Parameters.ApellidoMMaxLength {
-		return fmt.Errorf("campo apellido materno debe tener entre %d y %d caracteres", Config.DevConfiguration.Parameters.ApellidoMMinLength, Config.DevConfiguration.Parameters.ApellidoMMaxLength)
+		return fmt.Errorf(validations.ErrorMessages["min_max"], "apellido materno", Config.DevConfiguration.Parameters.ApellidoMMinLength, Config.DevConfiguration.Parameters.ApellidoMMaxLength)
 	}
 	return nil
 }
@@ -143,11 +143,11 @@ func isFullNameValid(name string, lastnameP string, lastnameM string) error {
 // length is between configuration
 func isPasswordInputValid(password string, pwdMinLength int, pwdMaxLength int) error {
 	if password == "" {
-		return errors.New("campo contraseña es requerido")
+		return fmt.Errorf(validations.ErrorMessages["requerido"], "contraseña")
 	}
 	// Check if password length is valid according to config file
 	if len(password) < pwdMinLength || len(password) > pwdMaxLength {
-		return fmt.Errorf("campo contraseña debe tener entre %d y %d caracteres", pwdMinLength, pwdMaxLength)
+		return fmt.Errorf(validations.ErrorMessages["min_max"], "contraseña", pwdMinLength, pwdMaxLength)
 	}
 	return nil
 }
@@ -157,7 +157,7 @@ func isPasswordInputValid(password string, pwdMinLength int, pwdMaxLength int) e
 // and not shorter than 5 characters
 func isPhoneValid(phone string) error {
 	if len(phone) < 5 || len(phone) > 20 {
-		return errors.New("campo teléfono debe tener entre 5 y 20 caracteres")
+		return fmt.Errorf(validations.ErrorMessages["min_max"], "teléfono", 5, 20)
 	} else if err := isValidInt(phone, "teléfono"); err != nil {
 		return err
 	}
@@ -178,10 +178,10 @@ func isValidImageName(imageName string) bool {
 func isValidInt(numberStr string, fieldName string) error {
 	re := regexp.MustCompile("^[0-9]+$")
 	if number, err := strconv.Atoi(numberStr); err != nil && number < 0 {
-		return fmt.Errorf("campo %s inválido", fieldName)
+		return fmt.Errorf(validations.ErrorMessages["numerico"], fieldName)
 	}
 	if !re.MatchString(numberStr) {
-		return fmt.Errorf("campo %s inválido", fieldName)
+		return fmt.Errorf(validations.ErrorMessages["numerico"], fieldName)
 	}
 	return nil
 }

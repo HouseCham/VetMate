@@ -31,6 +31,7 @@ var ErrorMessages = map[string]string{
 	"correo": "El campo %s debe ser un correo válido",
 	"minimo": "El campo %s debe tener al menos %d caracteres",
 	"maximo": "El campo %s no debe tener mas de %d caracteres",
+	"min_max": "El campo %s debe tener entre %d y %d caracteres",
 	"unico": "El campo %s ya ha sido tomado",
 	"confirmacion": "La confirmacion del campo %s no coincide",
 	"existencia": "El campo %s no existe",
@@ -42,6 +43,7 @@ var ErrorMessages = map[string]string{
 	"alfanumerico": "El campo %s solo puede contener letras y numeros",
 	"alfanumerico_guion": "El campo %s solo puede contener letras, numeros y guiones",
 	"numerico": "El campo %s debe ser un número",
+	"imagen": "El campo %s debe ser una imagen válida",
 }
 
 // ShareConfigFile is a function that shares the
