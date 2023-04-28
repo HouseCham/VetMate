@@ -27,7 +27,7 @@ func InsertNewVet(c *fiber.Ctx) error {
 
 	// Check if email is already in use
 	// set false as second parameter in order to check for vet emails
-	if message, status, err :=  checkEmailAlreadyInUse(request.Email, false, c); err != nil {
+	if message, status, err := checkEmailAlreadyInUse(request.Email, false, c); err != nil {
 		c.Status(status)
 		return c.JSON(fiber.Map{
 			"message": message,
@@ -66,8 +66,28 @@ func InsertNewVet(c *fiber.Ctx) error {
 		Telefono:     request.Telefono,
 	}
 
-	return Queries.InsertNewVet(c.Context(), params)
+	// Starting transaction
+	tx, err := DB.Begin()
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"message": "Error starting transaction",
+			"error":   err.Error(),
+		})
+	}
+	defer tx.Rollback()
+
+	// getting queries with transaction
+	qtx := Queries.WithTx(tx)
+	err = qtx.InsertNewVet(c.Context(), params)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"message": "Error inserting new vet",
+			"error":   err.Error(),
+		})
+	}
+	return tx.Commit()
 }
+
 // GetVetById is a function that gets the vet info
 // by the vet id from the url
 func GetVetById(c *fiber.Ctx) error {
@@ -104,6 +124,7 @@ func GetVetById(c *fiber.Ctx) error {
 	}
 	return c.JSON(mainInfo)
 }
+
 // UpdateVet is a function that updates the vet info
 // by the vet id from the url
 func UpdateVet(c *fiber.Ctx) error {
@@ -141,12 +162,12 @@ func UpdateVet(c *fiber.Ctx) error {
 
 	// Mapping request body to db.UpdateVetParams struct
 	params := db.UpdateVetParams{
-		ID:           request.ID,
-		Nombre:       request.Nombre,
-		ApellidoP:    request.ApellidoP,
-		ApellidoM:    request.ApellidoM,
-		Telefono:     request.Telefono,
-		ImgUrl:       request.ImgUrl,
+		ID:        request.ID,
+		Nombre:    request.Nombre,
+		ApellidoP: request.ApellidoP,
+		ApellidoM: request.ApellidoM,
+		Telefono:  request.Telefono,
+		ImgUrl:    request.ImgUrl,
 	}
 
 	return Queries.UpdateVet(c.Context(), params)
