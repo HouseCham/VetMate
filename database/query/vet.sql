@@ -26,10 +26,10 @@ WHERE email = ?;
 
 -- name: UpdateVet :exec
 UPDATE veterinarios
-SET nombre = ?, apellido_p = ?, apellido_m = ?, telefono = ?, img_url = ?, fecha_update = NOW()
+SET nombre = ?, apellido_p = ?, apellido_m = ?, telefono = ?, img_url = ?, fecha_update = DATE_SUB(NOW(), INTERVAL 6 HOUR)
 WHERE id = ? AND fecha_delete IS NULL;
 
 -- name: DeleteVet :exec
 UPDATE veterinarios
-SET fecha_delete = NOW()
+SET fecha_delete = DATE_SUB(NOW(), INTERVAL 6 HOUR)
 WHERE id = ? AND fecha_delete IS NULL;

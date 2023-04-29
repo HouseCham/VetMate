@@ -10,9 +10,10 @@ CREATE TABLE `veterinarios` (
   `password` varchar(255) NOT NULL,
   `email_validado` tinyint DEFAULT 0,
 
-  `fecha_registro` timestamp DEFAULT (now()),
+  `fecha_registro` timestamp DEFAULT (NOW()),
   `fecha_update` timestamp,
   `fecha_delete` timestamp
+  -- NOW() -> DATE_SUB(NOW(), INTERVAL 6 HOUR)
 );
 
 CREATE TABLE `negocios` (
@@ -20,7 +21,7 @@ CREATE TABLE `negocios` (
   `nombre_negocio` varchar(150) NOT NULL,
   `guid` char(36) NOT NULL,
 
-  `fecha_registro` timestamp DEFAULT (now()),
+  `fecha_registro` timestamp DEFAULT (NOW()),
   `fecha_update` timestamp,
   `fecha_delete` timestamp
 );
@@ -36,7 +37,7 @@ CREATE TABLE `direccion_locales` (
   `estado` varchar(50) NOT NULL,
   `pais` varchar(50) NOT NULL DEFAULT 'México',
 
-  `fecha_registro` timestamp DEFAULT (now()),
+  `fecha_registro` timestamp DEFAULT (NOW()),
   `fecha_update` timestamp,
   `fecha_delete` timestamp
 );

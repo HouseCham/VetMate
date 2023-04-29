@@ -18,7 +18,7 @@ CREATE TABLE `usuarios` (
   `pais` varchar(50) NOT NULL,
   `referencia` varchar(255),
 
-  `fecha_registro` timestamp DEFAULT (now()),
+  `fecha_registro` timestamp DEFAULT (NOW()),
   `fecha_update` timestamp,
   `fecha_delete` timestamp
 );
@@ -33,7 +33,7 @@ CREATE TABLE `mascotas` (
   `proxima_fecha_vacunacion` timestamp,
   `proxima_fecha_desparasitacion` timestamp,
 
-  `fecha_registro` timestamp DEFAULT (now()),
+  `fecha_registro` timestamp DEFAULT (NOW()),
   `fecha_update` timestamp,
   `fecha_delete` timestamp
 );

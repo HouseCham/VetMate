@@ -37,10 +37,10 @@ UPDATE usuarios
 SET nombre = ?, apellido_p = ?, apellido_m = ?,
 telefono = ?, calle = ?, num_ext = ?, num_int = ?,
 colonia = ?, cp = ?, ciudad = ?, estado = ?, pais = ?,
-referencia = ?, fecha_update = NOW()
+referencia = ?, fecha_update = DATE_SUB(NOW(), INTERVAL 6 HOUR)
 WHERE id = ? AND fecha_delete IS NULL;
 
 -- name: DeleteUser :exec
 UPDATE usuarios
-SET fecha_delete = NOW()
+SET fecha_delete = DATE_SUB(NOW(), INTERVAL 6 HOUR)
 WHERE id = ? AND fecha_delete IS NULL;
