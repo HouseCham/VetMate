@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"errors"
-
 	"github.com/HouseCham/VetMate/auth"
 	db "github.com/HouseCham/VetMate/database/sql"
 	"github.com/HouseCham/VetMate/util"
@@ -85,9 +83,31 @@ func InsertNewUser(c *fiber.Ctx) error {
 // GetUserByEmail gets a user by email
 // if user does not exist, return 404
 func GetUserById(c *fiber.Ctx) error {
-	return errors.New("not implemented yet")
-}
+	// Get the variable from the request context
+	// Variable not found or not of type string
+	userId, message, err := getIdFromRequestContext(c)
+	if err != nil {
+		c.Status(fiber.StatusInternalServerError)
+		return c.JSON(fiber.Map{
+			"message": message,
+			"error":   err.Error(),
+		})
+	}
 
+	// then, we need to get the vet info from the database
+	// if error occurs, return 404
+	mainInfo, err := Queries.GetUserMainInfoById(c.Context(), userId)
+	if err != nil {
+		c.Status(fiber.StatusNotFound)
+		return c.JSON(fiber.Map{
+			"message": "Could not get user info",
+			"error":   err.Error(),
+		})
+	}
+	return c.JSON(mainInfo)
+}
+// LoginUser is a function that logs in a user
+// matching email and password
 func LoginUser(c *fiber.Ctx) error {
 	var request db.Usuario
 	var err error
