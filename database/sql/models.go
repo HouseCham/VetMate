@@ -32,9 +32,17 @@ type Mascota struct {
 	ID                          int32          `json:"id"`
 	PropietarioID               sql.NullInt32  `json:"propietario_id"`
 	RazaID                      sql.NullInt32  `json:"raza_id"`
-	RazaComentario              sql.NullString `json:"raza_comentario"`
+	Descripcion                 sql.NullString `json:"descripcion"`
 	Nombre                      sql.NullString `json:"nombre"`
-	Edad                        sql.NullInt32  `json:"edad"`
+	EdadAprox                   sql.NullInt32  `json:"edad_aprox"`
+	Sexo                        sql.NullString `json:"sexo"`
+	Token                       string         `json:"token"`
+	ImgUrl                      sql.NullString `json:"img_url"`
+	FechaNacimiento             sql.NullTime   `json:"fecha_nacimiento"`
+	FechaMuerte                 sql.NullTime   `json:"fecha_muerte"`
+	FechaEsterilizacion         sql.NullTime   `json:"fecha_esterilizacion"`
+	UltimaFechaDesparasitacion  sql.NullTime   `json:"ultima_fecha_desparasitacion"`
+	UltimaFechaVacunacion       sql.NullTime   `json:"ultima_fecha_vacunacion"`
 	ProximaFechaVacunacion      sql.NullTime   `json:"proxima_fecha_vacunacion"`
 	ProximaFechaDesparasitacion sql.NullTime   `json:"proxima_fecha_desparasitacion"`
 	FechaRegistro               sql.NullTime   `json:"fecha_registro"`
@@ -45,7 +53,7 @@ type Mascota struct {
 type Negocio struct {
 	ID            int32        `json:"id"`
 	NombreNegocio string       `json:"nombre_negocio"`
-	Guid          string       `json:"guid"`
+	Token         string       `json:"token"`
 	FechaRegistro sql.NullTime `json:"fecha_registro"`
 	FechaUpdate   sql.NullTime `json:"fecha_update"`
 	FechaDelete   sql.NullTime `json:"fecha_delete"`
@@ -59,6 +67,7 @@ type Raza struct {
 
 type Usuario struct {
 	ID            int32          `json:"id"`
+	Token         string         `json:"token"`
 	Nombre        string         `json:"nombre"`
 	ApellidoP     string         `json:"apellido_p"`
 	ApellidoM     string         `json:"apellido_m"`
@@ -84,6 +93,7 @@ type Usuario struct {
 type Veterinario struct {
 	ID            int32          `json:"id"`
 	VeterinariaID sql.NullInt32  `json:"veterinaria_id"`
+	Token         string         `json:"token"`
 	Nombre        string         `json:"nombre"`
 	ApellidoP     string         `json:"apellido_p"`
 	ApellidoM     string         `json:"apellido_m"`

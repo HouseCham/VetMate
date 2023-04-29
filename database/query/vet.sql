@@ -6,13 +6,14 @@ WHERE id = ? AND fecha_delete IS NULL;
 -- name: InsertNewVet :exec
 INSERT INTO veterinarios (
     veterinaria_id,
+    token,
     nombre,
     apellido_p,
     apellido_m,
     email,
     telefono,
     password
-) VALUES (?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: GetVetByEmail :one
 SELECT id, password

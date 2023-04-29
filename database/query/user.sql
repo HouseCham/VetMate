@@ -1,5 +1,6 @@
 -- name: InsertNewUser :exec
 INSERT INTO usuarios(
+    token,
     nombre,
     apellido_p,
     apellido_m,
@@ -15,7 +16,7 @@ INSERT INTO usuarios(
     estado,
     pais,
     referencia
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: CheckUserEmailExists :one
 SELECT COUNT(*)

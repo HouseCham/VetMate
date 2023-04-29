@@ -2,7 +2,8 @@
 INSERT INTO mascotas (
     propietario_id,
     raza_id,
-    raza_comentario,
+    token,
+    descripcion,
     nombre,
-    edad
-) VALUES (?, ?, ?, ?, ?);
+    edad_aprox
+) VALUES (?, ?, ?, ?, ?, ?);

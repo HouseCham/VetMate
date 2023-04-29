@@ -86,17 +86,19 @@ func (q *Queries) GetVetMainInfoById(ctx context.Context, id int32) (GetVetMainI
 const insertNewVet = `-- name: InsertNewVet :exec
 INSERT INTO veterinarios (
     veterinaria_id,
+    token,
     nombre,
     apellido_p,
     apellido_m,
     email,
     telefono,
     password
-) VALUES (?, ?, ?, ?, ?, ?, ?)
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type InsertNewVetParams struct {
 	VeterinariaID sql.NullInt32  `json:"veterinaria_id"`
+	Token         string         `json:"token"`
 	Nombre        string         `json:"nombre"`
 	ApellidoP     string         `json:"apellido_p"`
 	ApellidoM     string         `json:"apellido_m"`
@@ -108,6 +110,7 @@ type InsertNewVetParams struct {
 func (q *Queries) InsertNewVet(ctx context.Context, arg InsertNewVetParams) error {
 	_, err := q.db.ExecContext(ctx, insertNewVet,
 		arg.VeterinariaID,
+		arg.Token,
 		arg.Nombre,
 		arg.ApellidoP,
 		arg.ApellidoM,

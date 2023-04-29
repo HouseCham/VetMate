@@ -65,6 +65,7 @@ func InsertNewUser(c *fiber.Ctx) error {
 		NumExt:       request.NumExt,
 		NumInt:       request.NumInt,
 		Referencia:   request.Referencia,
+		Token: util.RandomStringNum(10),
 	}
 
 	// Inserting info into the database

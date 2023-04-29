@@ -1,5 +1,6 @@
 CREATE TABLE `usuarios` (
   `id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  `token` char(10) NOT NULL,
   `nombre` varchar(100) NOT NULL,
   `apellido_p` varchar(50) NOT NULL,
   `apellido_m` varchar(50) NOT NULL,
@@ -27,9 +28,20 @@ CREATE TABLE `mascotas` (
   `id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   `propietario_id` INT UNSIGNED,
   `raza_id` INT UNSIGNED,
-  `raza_comentario` varchar(100),
+  `descripcion` varchar(255),
   `nombre` varchar(100),
-  `edad` TINYINT,
+  `edad_aprox` TINYINT UNSIGNED,
+  `sexo` char(1),
+  `token` char(10) NOT NULL,
+  `img_url` varchar(50),
+
+  `fecha_nacimiento` timestamp,
+  `fecha_muerte` timestamp,
+
+  `fecha_esterilizacion` timestamp,
+  `ultima_fecha_desparasitacion` timestamp,
+  `ultima_fecha_vacunacion` timestamp,
+
   `proxima_fecha_vacunacion` timestamp,
   `proxima_fecha_desparasitacion` timestamp,
 

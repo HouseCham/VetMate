@@ -14,27 +14,30 @@ const insertNewPet = `-- name: InsertNewPet :exec
 INSERT INTO mascotas (
     propietario_id,
     raza_id,
-    raza_comentario,
+    token,
+    descripcion,
     nombre,
-    edad
-) VALUES (?, ?, ?, ?, ?)
+    edad_aprox
+) VALUES (?, ?, ?, ?, ?, ?)
 `
 
 type InsertNewPetParams struct {
-	PropietarioID  sql.NullInt32  `json:"propietario_id"`
-	RazaID         sql.NullInt32  `json:"raza_id"`
-	RazaComentario sql.NullString `json:"raza_comentario"`
-	Nombre         sql.NullString `json:"nombre"`
-	Edad           sql.NullInt32  `json:"edad"`
+	PropietarioID sql.NullInt32  `json:"propietario_id"`
+	RazaID        sql.NullInt32  `json:"raza_id"`
+	Token         string         `json:"token"`
+	Descripcion   sql.NullString `json:"descripcion"`
+	Nombre        sql.NullString `json:"nombre"`
+	EdadAprox     sql.NullInt32  `json:"edad_aprox"`
 }
 
 func (q *Queries) InsertNewPet(ctx context.Context, arg InsertNewPetParams) error {
 	_, err := q.db.ExecContext(ctx, insertNewPet,
 		arg.PropietarioID,
 		arg.RazaID,
-		arg.RazaComentario,
+		arg.Token,
+		arg.Descripcion,
 		arg.Nombre,
-		arg.Edad,
+		arg.EdadAprox,
 	)
 	return err
 }

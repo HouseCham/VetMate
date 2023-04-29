@@ -24,7 +24,7 @@ func CheckPassword(password string, hash string) error {
 
 // GenerateRandomString generates a random string of length n
 // with characters from a-z, A-Z, and 0-9
-func RandomString(n int) string {
+func RandomStringNum(n int) string {
 	var sb strings.Builder
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	k := len(charset)

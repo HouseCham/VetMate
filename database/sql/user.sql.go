@@ -83,6 +83,7 @@ func (q *Queries) GetUserMainInfoById(ctx context.Context, id int32) (GetUserMai
 
 const insertNewUser = `-- name: InsertNewUser :exec
 INSERT INTO usuarios(
+    token,
     nombre,
     apellido_p,
     apellido_m,
@@ -98,10 +99,11 @@ INSERT INTO usuarios(
     estado,
     pais,
     referencia
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type InsertNewUserParams struct {
+	Token      string         `json:"token"`
 	Nombre     string         `json:"nombre"`
 	ApellidoP  string         `json:"apellido_p"`
 	ApellidoM  string         `json:"apellido_m"`
@@ -121,6 +123,7 @@ type InsertNewUserParams struct {
 
 func (q *Queries) InsertNewUser(ctx context.Context, arg InsertNewUserParams) error {
 	_, err := q.db.ExecContext(ctx, insertNewUser,
+		arg.Token,
 		arg.Nombre,
 		arg.ApellidoP,
 		arg.ApellidoM,

@@ -63,6 +63,7 @@ func InsertNewVet(c *fiber.Ctx) error {
 		Password: request.Password,
 		Email:        request.Email,
 		Telefono:     request.Telefono,
+		Token: util.RandomStringNum(10),
 	}
 
 	// Starting transaction

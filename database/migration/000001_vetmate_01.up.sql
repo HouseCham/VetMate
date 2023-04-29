@@ -1,6 +1,7 @@
 CREATE TABLE `veterinarios` (
   `id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   `veterinaria_id` INT UNSIGNED,
+  `token` char(10) NOT NULL,
   `nombre` varchar(100) NOT NULL,
   `apellido_p` varchar(50) NOT NULL,
   `apellido_m` varchar(50) NOT NULL,
@@ -19,7 +20,7 @@ CREATE TABLE `veterinarios` (
 CREATE TABLE `negocios` (
   `id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   `nombre_negocio` varchar(150) NOT NULL,
-  `guid` char(36) NOT NULL,
+  `token` char(10) NOT NULL,
 
   `fecha_registro` timestamp DEFAULT (NOW()),
   `fecha_update` timestamp,
@@ -56,5 +57,5 @@ ALTER TABLE `direccion_locales` ADD FOREIGN KEY (`id_negocio`) REFERENCES `negoc
 
 
 -- Inserting random data
-INSERT INTO negocios(`nombre_negocio`, `guid`) VALUES('Marton Hospital Veterinario', 'd82ad76e-e456-11ed-b5ea-0242ac120002');
+INSERT INTO negocios(`nombre_negocio`, `token`) VALUES('Marton Hospital Veterinario', 'E6l9FeX3mr');
 INSERT INTO direccion_locales(`id_negocio`,`calle`,`cp`,`num_ext`,`num_int`,`colonia`,`estado`) VALUES(1, 'Calle 1', '12345', '123', '123', 'Colonia 1', 'Estado 1');
