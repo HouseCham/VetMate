@@ -19,4 +19,5 @@ func SetAllRoutes(app *fiber.App) {
 	app.Get("/api/v1/user/:id", middleware.JwtMiddleware() , controllers.GetUserById)
 	app.Post("/api/v1/user/insert", controllers.InsertNewUser)
 	app.Post("/api/v1/user/login", controllers.LoginUser)
+	app.Put("/api/v1/user/update", middleware.JwtMiddleware() , controllers.UpdateUser)
 }

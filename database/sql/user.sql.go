@@ -129,7 +129,7 @@ func (q *Queries) InsertNewUser(ctx context.Context, arg InsertNewUserParams) er
 	return err
 }
 
-const updateUserMainInfo = `-- name: UpdateUserMainInfo :exec
+const updateUser = `-- name: UpdateUser :exec
 UPDATE usuarios
 SET nombre = ?, apellido_p = ?, apellido_m = ?,
 telefono = ?, calle = ?, num_ext = ?, num_int = ?,
@@ -138,7 +138,7 @@ referencia = ?, fecha_update = NOW()
 WHERE id = ?
 `
 
-type UpdateUserMainInfoParams struct {
+type UpdateUserParams struct {
 	Nombre     string         `json:"nombre"`
 	ApellidoP  string         `json:"apellido_p"`
 	ApellidoM  string         `json:"apellido_m"`
@@ -155,8 +155,8 @@ type UpdateUserMainInfoParams struct {
 	ID         int32          `json:"id"`
 }
 
-func (q *Queries) UpdateUserMainInfo(ctx context.Context, arg UpdateUserMainInfoParams) error {
-	_, err := q.db.ExecContext(ctx, updateUserMainInfo,
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
+	_, err := q.db.ExecContext(ctx, updateUser,
 		arg.Nombre,
 		arg.ApellidoP,
 		arg.ApellidoM,

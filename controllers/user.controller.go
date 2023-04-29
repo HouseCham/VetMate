@@ -160,3 +160,77 @@ func LoginUser(c *fiber.Ctx) error {
 		"token":   tokenString,
 	})
 }
+
+// UpdateUser updates a user
+func UpdateUser(c *fiber.Ctx) error {
+	// Get the variable from the request context
+	// Variable not found or not of type string
+	userId, message, err := getIdFromRequestContext(c)
+	if err != nil {
+		c.Status(fiber.StatusInternalServerError)
+		return c.JSON(fiber.Map{
+			"message": message,
+			"error":   err.Error(),
+		})
+	}
+
+	var request db.Usuario
+
+	// Parse request body from JSON to struct
+	c.BodyParser(&request)
+
+	request.ID = userId
+
+	// Trim() and deleting blank spaces from request body
+	purgeInputData(&request)
+
+	// Validate request body
+	// if not valid, return 400
+	if err := validations.ValidateRequest(&request, 2); err != nil {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "Invalid request body",
+			"error":   err.Error(),
+		})
+	}
+
+	// mapping request body to update user database params
+	params := db.UpdateUserParams{
+		ID:           request.ID,
+		Nombre:       request.Nombre,
+		ApellidoP:    request.ApellidoP,
+		ApellidoM:    request.ApellidoM,
+		Telefono:     request.Telefono,
+		Calle:        request.Calle,
+		Colonia:      request.Colonia,
+		Ciudad:       request.Ciudad,
+		Estado:       request.Estado,
+		Cp:           request.Cp,
+		Pais:         request.Pais,
+		NumExt:       request.NumExt,
+		NumInt:       request.NumInt,
+		Referencia:   request.Referencia,
+	}
+
+	// Starting transaction
+	tx, err := DB.Begin()
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"message": "Error starting transaction",
+			"error":   err.Error(),
+		})
+	}
+	defer tx.Rollback()
+
+	// implementing transaction in queries
+	qtx := Queries.WithTx(tx)
+	err = qtx.UpdateUser(c.Context(), params)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"message": "Error updating vet",
+			"error":   err.Error(),
+		})
+	}
+
+	return tx.Commit()
+}

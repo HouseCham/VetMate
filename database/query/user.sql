@@ -32,7 +32,7 @@ SELECT nombre, apellido_p, apellido_m, email, telefono, img_url
 FROM usuarios
 WHERE id = ?;
 
--- name: UpdateUserMainInfo :exec
+-- name: UpdateUser :exec
 UPDATE usuarios
 SET nombre = ?, apellido_p = ?, apellido_m = ?,
 telefono = ?, calle = ?, num_ext = ?, num_int = ?,
