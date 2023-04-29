@@ -26,7 +26,7 @@ func (q *Queries) CheckUserEmailExists(ctx context.Context, email string) (int64
 const deleteUser = `-- name: DeleteUser :exec
 UPDATE usuarios
 SET fecha_delete = NOW()
-WHERE id = ?
+WHERE id = ? AND fecha_delete IS NULL
 `
 
 func (q *Queries) DeleteUser(ctx context.Context, id int32) error {
@@ -37,7 +37,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id int32) error {
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT id, password
 FROM usuarios
-WHERE email = ?
+WHERE email = ? AND fecha_delete IS NULL
 `
 
 type GetUserByEmailRow struct {
@@ -55,7 +55,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 const getUserMainInfoById = `-- name: GetUserMainInfoById :one
 SELECT nombre, apellido_p, apellido_m, email, telefono, img_url
 FROM usuarios
-WHERE id = ?
+WHERE id = ? AND fecha_delete IS NULL
 `
 
 type GetUserMainInfoByIdRow struct {
@@ -146,7 +146,7 @@ SET nombre = ?, apellido_p = ?, apellido_m = ?,
 telefono = ?, calle = ?, num_ext = ?, num_int = ?,
 colonia = ?, cp = ?, ciudad = ?, estado = ?, pais = ?,
 referencia = ?, fecha_update = NOW()
-WHERE id = ?
+WHERE id = ? AND fecha_delete IS NULL
 `
 
 type UpdateUserParams struct {

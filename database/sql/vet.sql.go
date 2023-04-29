@@ -26,7 +26,7 @@ func (q *Queries) CheckVetEmailExists(ctx context.Context, email string) (int64,
 const deleteVet = `-- name: DeleteVet :exec
 UPDATE veterinarios
 SET fecha_delete = NOW()
-WHERE id = ?
+WHERE id = ? AND fecha_delete IS NULL
 `
 
 func (q *Queries) DeleteVet(ctx context.Context, id int32) error {
@@ -37,7 +37,7 @@ func (q *Queries) DeleteVet(ctx context.Context, id int32) error {
 const getVetByEmail = `-- name: GetVetByEmail :one
 SELECT id, password
 FROM veterinarios
-WHERE email = ?
+WHERE email = ? AND fecha_delete IS NULL
 `
 
 type GetVetByEmailRow struct {
@@ -55,7 +55,7 @@ func (q *Queries) GetVetByEmail(ctx context.Context, email string) (GetVetByEmai
 const getVetMainInfoById = `-- name: GetVetMainInfoById :one
 SELECT id, nombre, apellido_p, apellido_m, email, telefono, img_url
 FROM veterinarios
-WHERE id = ?
+WHERE id = ? AND fecha_delete IS NULL
 `
 
 type GetVetMainInfoByIdRow struct {
@@ -121,7 +121,7 @@ func (q *Queries) InsertNewVet(ctx context.Context, arg InsertNewVetParams) erro
 const updateVet = `-- name: UpdateVet :exec
 UPDATE veterinarios
 SET nombre = ?, apellido_p = ?, apellido_m = ?, telefono = ?, img_url = ?, fecha_update = NOW()
-WHERE id = ?
+WHERE id = ? AND fecha_delete IS NULL
 `
 
 type UpdateVetParams struct {
