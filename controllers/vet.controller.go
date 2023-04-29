@@ -88,8 +88,9 @@ func InsertNewVet(c *fiber.Ctx) error {
 	return tx.Commit()
 }
 
+//! TODO: think if we need transaction for selecting data
 // GetVetById is a function that gets the vet info
-// by the vet id from the url
+// by the vet id from the fiber context
 func GetVetById(c *fiber.Ctx) error {
 	// Get the variable from the request context
 	// Variable not found or not of type string
@@ -126,7 +127,7 @@ func GetVetById(c *fiber.Ctx) error {
 }
 
 // UpdateVet is a function that updates the vet info
-// by the vet id from the url
+// by the vet id from the fiber context
 func UpdateVet(c *fiber.Ctx) error {
 	// Get the vetId from the request context
 	// If variable not found or not of type string
@@ -193,12 +194,50 @@ func UpdateVet(c *fiber.Ctx) error {
 	return tx.Commit()
 }
 
+// DeleteVet is a function that deletes the vet info
+// by the vet id from fiber context
+func DeleteVet(c *fiber.Ctx) error {
+	// Get the vetId from the request context
+	// If variable not found or not of type string
+	// return 500 with error message
+	vetId, message, err := getIdFromRequestContext(c)
+	if err != nil {
+		c.Status(fiber.StatusInternalServerError)
+		return c.JSON(fiber.Map{
+			"message": message,
+			"error":   err.Error(),
+		})
+	}
+
+	// Starting transaction
+	tx, err := DB.Begin()
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"message": "Error starting transaction",
+			"error":   err.Error(),
+		})
+	}
+	defer tx.Rollback()
+
+	// getting queries with transaction
+	qtx := Queries.WithTx(tx)
+	err = qtx.DeleteVet(c.Context(), vetId)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"message": "Error deleting vet",
+			"error":   err.Error(),
+		})
+	}
+
+	return tx.Commit()
+}
+
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-// ? Implement Trim() function for LoginRequest struct
+// Implementing Trim() function for LoginRequest struct
 func (loginRequest *LoginRequest) Trim() {
 	loginRequest.Email = strings.TrimSpace(loginRequest.Email)
 	loginRequest.Password = strings.TrimSpace(loginRequest.Password)
