@@ -3,7 +3,6 @@ package controllers
 import (
 	"errors"
 	"strconv"
-	"strings"
 
 	"github.com/HouseCham/VetMate/auth"
 	db "github.com/HouseCham/VetMate/database/sql"
@@ -220,17 +219,6 @@ func DeleteVet(c *fiber.Ctx) error {
 	}
 
 	return tx.Commit()
-}
-
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-// Implementing Trim() function for LoginRequest struct
-func (loginRequest *LoginRequest) Trim() {
-	loginRequest.Email = strings.TrimSpace(loginRequest.Email)
-	loginRequest.Password = strings.TrimSpace(loginRequest.Password)
 }
 
 // LoginVet is a function that logs in the vet
