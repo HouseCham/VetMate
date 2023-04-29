@@ -23,6 +23,17 @@ func (q *Queries) CheckUserEmailExists(ctx context.Context, email string) (int64
 	return count, err
 }
 
+const deleteUser = `-- name: DeleteUser :exec
+UPDATE usuarios
+SET fecha_delete = NOW()
+WHERE id = ?
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id int32) error {
+	_, err := q.db.ExecContext(ctx, deleteUser, id)
+	return err
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT id, password
 FROM usuarios

@@ -234,3 +234,40 @@ func UpdateUser(c *fiber.Ctx) error {
 
 	return tx.Commit()
 }
+
+// DeleteUser deletes a user
+// by updating the fecha_delete field to current date
+func DeleteUser(c *fiber.Ctx) error {
+	// Get the variable from the request context
+	// Variable not found or not of type string
+	userId, message, err := getIdFromRequestContext(c)
+	if err != nil {
+		c.Status(fiber.StatusInternalServerError)
+		return c.JSON(fiber.Map{
+			"message": message,
+			"error":   err.Error(),
+		})
+	}
+
+	// Starting transaction
+	tx, err := DB.Begin()
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"message": "Error starting transaction",
+			"error":   err.Error(),
+		})
+	}
+	defer tx.Rollback()
+
+	// implementing transaction in queries
+	qtx := Queries.WithTx(tx)
+	err = qtx.DeleteUser(c.Context(), userId)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"message": "Error deleting user",
+			"error":   err.Error(),
+		})
+	}
+
+	return tx.Commit()
+}

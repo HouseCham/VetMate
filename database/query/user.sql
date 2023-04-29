@@ -39,3 +39,8 @@ telefono = ?, calle = ?, num_ext = ?, num_int = ?,
 colonia = ?, cp = ?, ciudad = ?, estado = ?, pais = ?,
 referencia = ?, fecha_update = NOW()
 WHERE id = ?;
+
+-- name: DeleteUser :exec
+UPDATE usuarios
+SET fecha_delete = NOW()
+WHERE id = ?;
