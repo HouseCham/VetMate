@@ -35,8 +35,10 @@ CREATE TABLE `direccion_locales` (
   `num_ext` varchar(10) NOT NULL,
   `num_int` varchar(10),
   `colonia` varchar(50) NOT NULL,
+  `ciudad` varchar(50) NOT NULL,
   `estado` varchar(50) NOT NULL,
   `pais` varchar(50) NOT NULL DEFAULT 'México',
+  `referencia` varchar(255),
 
   `fecha_registro` timestamp DEFAULT (NOW()),
   `fecha_update` timestamp,
@@ -54,8 +56,3 @@ CREATE INDEX `direccion_completa` ON `direccion_locales` (`calle`, `num_ext`, `c
 ALTER TABLE `veterinarios` ADD FOREIGN KEY (`veterinaria_id`) REFERENCES `negocios` (`id`);
 
 ALTER TABLE `direccion_locales` ADD FOREIGN KEY (`id_negocio`) REFERENCES `negocios` (`id`);
-
-
--- Inserting random data
-INSERT INTO negocios(`nombre_negocio`, `token`) VALUES('Marton Hospital Veterinario', 'E6l9FeX3mr');
-INSERT INTO direccion_locales(`id_negocio`,`calle`,`cp`,`num_ext`,`num_int`,`colonia`,`estado`) VALUES(1, 'Calle 1', '12345', '123', '123', 'Colonia 1', 'Estado 1');

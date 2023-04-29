@@ -16,8 +16,10 @@ type DireccionLocale struct {
 	NumExt        string         `json:"num_ext"`
 	NumInt        sql.NullString `json:"num_int"`
 	Colonia       string         `json:"colonia"`
+	Ciudad        string         `json:"ciudad"`
 	Estado        string         `json:"estado"`
 	Pais          string         `json:"pais"`
+	Referencia    sql.NullString `json:"referencia"`
 	FechaRegistro sql.NullTime   `json:"fecha_registro"`
 	FechaUpdate   sql.NullTime   `json:"fecha_update"`
 	FechaDelete   sql.NullTime   `json:"fecha_delete"`
