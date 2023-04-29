@@ -7,7 +7,7 @@ CREATE TABLE `veterinarios` (
   `email` varchar(150) NOT NULL UNIQUE,
   `telefono` varchar(20),
   `img_url` varchar(255) DEFAULT 'profile_404.png',
-  `password_hash` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
   `email_validado` tinyint DEFAULT 0,
 
   `fecha_registro` timestamp DEFAULT (now()),

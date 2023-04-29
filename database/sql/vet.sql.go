@@ -35,20 +35,20 @@ func (q *Queries) DeleteVet(ctx context.Context, id int32) error {
 }
 
 const getVetByEmail = `-- name: GetVetByEmail :one
-SELECT id, password_hash
+SELECT id, password
 FROM veterinarios
 WHERE email = ?
 `
 
 type GetVetByEmailRow struct {
-	ID           int32  `json:"id"`
-	PasswordHash string `json:"password_hash"`
+	ID       int32  `json:"id"`
+	Password string `json:"password"`
 }
 
 func (q *Queries) GetVetByEmail(ctx context.Context, email string) (GetVetByEmailRow, error) {
 	row := q.db.QueryRowContext(ctx, getVetByEmail, email)
 	var i GetVetByEmailRow
-	err := row.Scan(&i.ID, &i.PasswordHash)
+	err := row.Scan(&i.ID, &i.Password)
 	return i, err
 }
 
@@ -91,7 +91,7 @@ INSERT INTO veterinarios (
     apellido_m,
     email,
     telefono,
-    password_hash
+    password
 ) VALUES (?, ?, ?, ?, ?, ?, ?)
 `
 
@@ -102,7 +102,7 @@ type InsertNewVetParams struct {
 	ApellidoM     string         `json:"apellido_m"`
 	Email         string         `json:"email"`
 	Telefono      sql.NullString `json:"telefono"`
-	PasswordHash  string         `json:"password_hash"`
+	Password      string         `json:"password"`
 }
 
 func (q *Queries) InsertNewVet(ctx context.Context, arg InsertNewVetParams) error {
@@ -113,7 +113,7 @@ func (q *Queries) InsertNewVet(ctx context.Context, arg InsertNewVetParams) erro
 		arg.ApellidoM,
 		arg.Email,
 		arg.Telefono,
-		arg.PasswordHash,
+		arg.Password,
 	)
 	return err
 }

@@ -25,7 +25,7 @@ func (vet *Veterinario) Trim() {
 	vet.Email = strings.TrimSpace(vet.Email)
 	vet.Telefono.String = strings.TrimSpace(vet.Telefono.String)
 	vet.ImgUrl.String = strings.TrimSpace(vet.ImgUrl.String)
-	vet.PasswordHash = strings.TrimSpace(vet.PasswordHash)
+	vet.Password = strings.TrimSpace(vet.Password)
 }
 
 func (vet *Veterinario) DeleteBlankFields() {
@@ -35,7 +35,7 @@ func (vet *Veterinario) DeleteBlankFields() {
 	vet.Email = strings.ReplaceAll(vet.Email, " ", "")
 	vet.Telefono.String = strings.ReplaceAll(vet.Telefono.String, " ", "")
 	vet.ImgUrl.String = strings.ReplaceAll(vet.ImgUrl.String, " ", "")
-	vet.PasswordHash = strings.ReplaceAll(vet.PasswordHash, " ", "")
+	vet.Password = strings.ReplaceAll(vet.Password, " ", "")
 }
 
 // ValidateUser is a function that validates the
@@ -46,7 +46,7 @@ func (newVetRegister *Veterinario) ValidateNewRegister() error {
 		return err
 	}
 	// Check if password is valid
-	if err := isPasswordInputValid(newVetRegister.PasswordHash, Config.DevConfiguration.Parameters.PwdMinLength, Config.DevConfiguration.Parameters.PwdMaxLength); err != nil {
+	if err := isPasswordInputValid(newVetRegister.Password, Config.DevConfiguration.Parameters.PwdMinLength, Config.DevConfiguration.Parameters.PwdMaxLength); err != nil {
 		return err
 	}
 	// Check if email is valid
@@ -84,7 +84,7 @@ func (vetUpdate *Veterinario) ValidateUpdate() error {
 func (vetLogin *Veterinario) ValidateLogin() error {
 	if err := isEmailValid(vetLogin.Email); err != nil {
 		return err
-	} else if err := isPasswordInputValid(vetLogin.PasswordHash,
+	} else if err := isPasswordInputValid(vetLogin.Password,
 		Config.DevConfiguration.Parameters.PwdMinLength,
 		Config.DevConfiguration.Parameters.PwdMaxLength); err != nil {
 		return err

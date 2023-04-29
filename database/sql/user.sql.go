@@ -24,20 +24,20 @@ func (q *Queries) CheckUserEmailExists(ctx context.Context, email string) (int64
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, password_hash
+SELECT id, password
 FROM usuarios
 WHERE email = ?
 `
 
 type GetUserByEmailRow struct {
-	ID           int32  `json:"id"`
-	PasswordHash string `json:"password_hash"`
+	ID       int32  `json:"id"`
+	Password string `json:"password"`
 }
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
 	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
 	var i GetUserByEmailRow
-	err := row.Scan(&i.ID, &i.PasswordHash)
+	err := row.Scan(&i.ID, &i.Password)
 	return i, err
 }
 
@@ -77,7 +77,7 @@ INSERT INTO usuarios(
     apellido_m,
     email,
     telefono,
-    password_hash,
+    password,
     calle,
     num_ext,
     num_int,
@@ -91,21 +91,21 @@ INSERT INTO usuarios(
 `
 
 type InsertNewUserParams struct {
-	Nombre       string         `json:"nombre"`
-	ApellidoP    string         `json:"apellido_p"`
-	ApellidoM    string         `json:"apellido_m"`
-	Email        string         `json:"email"`
-	Telefono     sql.NullString `json:"telefono"`
-	PasswordHash string         `json:"password_hash"`
-	Calle        string         `json:"calle"`
-	NumExt       string         `json:"num_ext"`
-	NumInt       sql.NullString `json:"num_int"`
-	Colonia      string         `json:"colonia"`
-	Cp           string         `json:"cp"`
-	Ciudad       string         `json:"ciudad"`
-	Estado       string         `json:"estado"`
-	Pais         string         `json:"pais"`
-	Referencia   sql.NullString `json:"referencia"`
+	Nombre     string         `json:"nombre"`
+	ApellidoP  string         `json:"apellido_p"`
+	ApellidoM  string         `json:"apellido_m"`
+	Email      string         `json:"email"`
+	Telefono   sql.NullString `json:"telefono"`
+	Password   string         `json:"password"`
+	Calle      string         `json:"calle"`
+	NumExt     string         `json:"num_ext"`
+	NumInt     sql.NullString `json:"num_int"`
+	Colonia    string         `json:"colonia"`
+	Cp         string         `json:"cp"`
+	Ciudad     string         `json:"ciudad"`
+	Estado     string         `json:"estado"`
+	Pais       string         `json:"pais"`
+	Referencia sql.NullString `json:"referencia"`
 }
 
 func (q *Queries) InsertNewUser(ctx context.Context, arg InsertNewUserParams) error {
@@ -115,7 +115,7 @@ func (q *Queries) InsertNewUser(ctx context.Context, arg InsertNewUserParams) er
 		arg.ApellidoM,
 		arg.Email,
 		arg.Telefono,
-		arg.PasswordHash,
+		arg.Password,
 		arg.Calle,
 		arg.NumExt,
 		arg.NumInt,
@@ -125,6 +125,52 @@ func (q *Queries) InsertNewUser(ctx context.Context, arg InsertNewUserParams) er
 		arg.Estado,
 		arg.Pais,
 		arg.Referencia,
+	)
+	return err
+}
+
+const updateUserMainInfo = `-- name: UpdateUserMainInfo :exec
+UPDATE usuarios
+SET nombre = ?, apellido_p = ?, apellido_m = ?,
+telefono = ?, calle = ?, num_ext = ?, num_int = ?,
+colonia = ?, cp = ?, ciudad = ?, estado = ?, pais = ?,
+referencia = ?, fecha_update = NOW()
+WHERE id = ?
+`
+
+type UpdateUserMainInfoParams struct {
+	Nombre     string         `json:"nombre"`
+	ApellidoP  string         `json:"apellido_p"`
+	ApellidoM  string         `json:"apellido_m"`
+	Telefono   sql.NullString `json:"telefono"`
+	Calle      string         `json:"calle"`
+	NumExt     string         `json:"num_ext"`
+	NumInt     sql.NullString `json:"num_int"`
+	Colonia    string         `json:"colonia"`
+	Cp         string         `json:"cp"`
+	Ciudad     string         `json:"ciudad"`
+	Estado     string         `json:"estado"`
+	Pais       string         `json:"pais"`
+	Referencia sql.NullString `json:"referencia"`
+	ID         int32          `json:"id"`
+}
+
+func (q *Queries) UpdateUserMainInfo(ctx context.Context, arg UpdateUserMainInfoParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserMainInfo,
+		arg.Nombre,
+		arg.ApellidoP,
+		arg.ApellidoM,
+		arg.Telefono,
+		arg.Calle,
+		arg.NumExt,
+		arg.NumInt,
+		arg.Colonia,
+		arg.Cp,
+		arg.Ciudad,
+		arg.Estado,
+		arg.Pais,
+		arg.Referencia,
+		arg.ID,
 	)
 	return err
 }

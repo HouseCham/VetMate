@@ -1,5 +1,7 @@
 -- name: GetVetMainInfoById :one
-CALL getVetMainInfoById(?)
+SELECT id, nombre, apellido_p, apellido_m, email, telefono, img_url
+FROM veterinarios
+WHERE id = ?;
 
 -- name: InsertNewVet :exec
 INSERT INTO veterinarios (
@@ -9,11 +11,11 @@ INSERT INTO veterinarios (
     apellido_m,
     email,
     telefono,
-    password_hash
+    password
 ) VALUES (?, ?, ?, ?, ?, ?, ?);
 
 -- name: GetVetByEmail :one
-SELECT id, password_hash
+SELECT id, password
 FROM veterinarios
 WHERE email = ?;
 

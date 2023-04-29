@@ -47,7 +47,7 @@ func InsertNewVet(c *fiber.Ctx) error {
 
 	// Hash password
 	// if error occurs, return 500
-	request.PasswordHash, err = util.HashPassword(request.PasswordHash)
+	request.Password, err = util.HashPassword(request.Password)
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError)
 		return c.JSON(fiber.Map{
@@ -61,7 +61,7 @@ func InsertNewVet(c *fiber.Ctx) error {
 		Nombre:       request.Nombre,
 		ApellidoP:    request.ApellidoP,
 		ApellidoM:    request.ApellidoM,
-		PasswordHash: request.PasswordHash,
+		Password: request.Password,
 		Email:        request.Email,
 		Telefono:     request.Telefono,
 	}
@@ -275,7 +275,7 @@ func LoginVet(c *fiber.Ctx) error {
 	}
 	// Compare password
 	// if error occurs, return 500
-	if err := util.CheckPassword(request.PasswordHash, vet.PasswordHash); err != nil {
+	if err := util.CheckPassword(request.Password, vet.Password); err != nil {
 		c.Status(fiber.StatusUnauthorized)
 		return c.JSON(fiber.Map{
 			"message": "Wrong password",

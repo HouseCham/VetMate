@@ -15,7 +15,7 @@ func (user *Usuario) Trim(){
 	user.ApellidoM = strings.TrimSpace(user.ApellidoM)
 	user.Email = strings.TrimSpace(user.Email)
 	user.Telefono.String = strings.TrimSpace(user.Telefono.String)
-	user.PasswordHash = strings.TrimSpace(user.PasswordHash)
+	user.Password = strings.TrimSpace(user.Password)
 	user.Calle = strings.TrimSpace(user.Calle)
 	user.Colonia = strings.TrimSpace(user.Colonia)
 	user.Ciudad = strings.TrimSpace(user.Ciudad)
@@ -33,7 +33,7 @@ func (user *Usuario) DeleteBlankFields(){
 	user.ApellidoM = strings.ReplaceAll(user.ApellidoM, " ", "")
 	user.Email = strings.ReplaceAll(user.Email, " ", "")
 	user.Telefono.String = strings.ReplaceAll(user.Telefono.String, " ", "")
-	user.PasswordHash = strings.ReplaceAll(user.PasswordHash, " ", "")
+	user.Password = strings.ReplaceAll(user.Password, " ", "")
 	user.Calle = strings.ReplaceAll(user.Calle, " ", "")
 	user.Colonia = strings.ReplaceAll(user.Colonia, " ", "")
 	user.Ciudad = strings.ReplaceAll(user.Ciudad, " ", "")
@@ -53,7 +53,7 @@ func (newUserRegister *Usuario) ValidateNewRegister() error {
 		return err
 	}
 	// Check if password is valid
-	if err := isPasswordInputValid(newUserRegister.PasswordHash, Config.DevConfiguration.Parameters.PwdMinLength, Config.DevConfiguration.Parameters.PwdMaxLength); err != nil {
+	if err := isPasswordInputValid(newUserRegister.Password, Config.DevConfiguration.Parameters.PwdMinLength, Config.DevConfiguration.Parameters.PwdMaxLength); err != nil {
 		return err
 	}
 	// Check if email is valid
@@ -116,7 +116,7 @@ func(userUpdate *Usuario) ValidateUpdate() error {
 func(userLogin *Usuario) ValidateLogin() error {
 	if err := isEmailValid(userLogin.Email); err != nil {
 		return err
-	} else if err := isPasswordInputValid(userLogin.PasswordHash,
+	} else if err := isPasswordInputValid(userLogin.Password,
 		Config.DevConfiguration.Parameters.PwdMinLength,
 		Config.DevConfiguration.Parameters.PwdMaxLength); err != nil {
 		return err

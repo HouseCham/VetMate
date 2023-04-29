@@ -5,7 +5,7 @@ CREATE TABLE `usuarios` (
   `apellido_m` varchar(50) NOT NULL,
   `email` varchar(150) NOT NULL,
   `telefono` varchar(20),
-  `password_hash` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
   `email_validado` tinyint DEFAULT 0,
   `img_url` varchar(50),
   `calle` varchar(150) NOT NULL,

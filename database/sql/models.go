@@ -64,7 +64,7 @@ type Usuario struct {
 	ApellidoM     string         `json:"apellido_m"`
 	Email         string         `json:"email"`
 	Telefono      sql.NullString `json:"telefono"`
-	PasswordHash  string         `json:"password_hash"`
+	Password      string         `json:"password"`
 	EmailValidado sql.NullInt32  `json:"email_validado"`
 	ImgUrl        sql.NullString `json:"img_url"`
 	Calle         string         `json:"calle"`
@@ -90,7 +90,7 @@ type Veterinario struct {
 	Email         string         `json:"email"`
 	Telefono      sql.NullString `json:"telefono"`
 	ImgUrl        sql.NullString `json:"img_url"`
-	PasswordHash  string         `json:"password_hash"`
+	Password      string         `json:"password"`
 	EmailValidado sql.NullInt32  `json:"email_validado"`
 	FechaRegistro sql.NullTime   `json:"fecha_registro"`
 	FechaUpdate   sql.NullTime   `json:"fecha_update"`

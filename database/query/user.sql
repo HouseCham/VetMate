@@ -5,7 +5,7 @@ INSERT INTO usuarios(
     apellido_m,
     email,
     telefono,
-    password_hash,
+    password,
     calle,
     num_ext,
     num_int,
@@ -23,7 +23,7 @@ FROM usuarios
 WHERE email = ?;
 
 -- name: GetUserByEmail :one
-SELECT id, password_hash
+SELECT id, password
 FROM usuarios
 WHERE email = ?;
 
@@ -32,6 +32,7 @@ SELECT nombre, apellido_p, apellido_m, email, telefono, img_url
 FROM usuarios
 WHERE id = ?;
 
+-- name: UpdateUserMainInfo :exec
 UPDATE usuarios
 SET nombre = ?, apellido_p = ?, apellido_m = ?,
 telefono = ?, calle = ?, num_ext = ?, num_int = ?,

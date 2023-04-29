@@ -41,7 +41,7 @@ func InsertNewUser(c *fiber.Ctx) error {
 
 	// Hash password
 	// if error occurs, return 500
-	request.PasswordHash, err = util.HashPassword(request.PasswordHash)
+	request.Password, err = util.HashPassword(request.Password)
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError)
 		return c.JSON(fiber.Map{
@@ -56,7 +56,7 @@ func InsertNewUser(c *fiber.Ctx) error {
 		ApellidoM:    request.ApellidoM,
 		Email:        request.Email,
 		Telefono:     request.Telefono,
-		PasswordHash: request.PasswordHash,
+		Password: request.Password,
 		Calle:        request.Calle,
 		Colonia:      request.Colonia,
 		Ciudad:       request.Ciudad,
@@ -81,9 +81,26 @@ func InsertNewUser(c *fiber.Ctx) error {
 
 	return nil
 }
-
 // GetUserByEmail gets a user by email
 // if user does not exist, return 404
 func GetUserById(c *fiber.Ctx) error {
+	return errors.New("not implemented yet")
+}
+
+func LoginUser(c *fiber.Ctx) error {
+	var request db.Usuario
+	var err error
+
+	c.BodyParser(&request)
+	purgeInputData(&request)
+
+	if err = validations.ValidateRequest(&request, 3); err != nil {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "There is an error with the request",
+			"error":   err.Error(),
+		})
+	}
+
 	return errors.New("not implemented yet")
 }
