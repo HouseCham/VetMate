@@ -35,7 +35,7 @@ type GetPetMainInfoRow struct {
 	Raza                       sql.NullString `json:"raza"`
 	Propietario                string         `json:"propietario"`
 	Descripcion                sql.NullString `json:"descripcion"`
-	Sexo                       sql.NullString `json:"sexo"`
+	Sexo                       string         `json:"sexo"`
 	Edad                       int32          `json:"edad"`
 	ImgUrl                     sql.NullString `json:"img_url"`
 	FechaNacimiento            sql.NullTime   `json:"fecha_nacimiento"`
@@ -82,7 +82,7 @@ type InsertNewPetParams struct {
 	RazaID          sql.NullInt32  `json:"raza_id"`
 	Descripcion     sql.NullString `json:"descripcion"`
 	Nombre          sql.NullString `json:"nombre"`
-	Sexo            sql.NullString `json:"sexo"`
+	Sexo            string         `json:"sexo"`
 	Token           string         `json:"token"`
 	ImgUrl          sql.NullString `json:"img_url"`
 	FechaNacimiento sql.NullTime   `json:"fecha_nacimiento"`
