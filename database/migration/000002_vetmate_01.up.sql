@@ -30,7 +30,6 @@ CREATE TABLE `mascotas` (
   `raza_id` INT UNSIGNED,
   `descripcion` varchar(255),
   `nombre` varchar(100),
-  `edad_aprox` TINYINT UNSIGNED,
   `sexo` char(1),
   `token` char(10) NOT NULL,
   `img_url` varchar(50),

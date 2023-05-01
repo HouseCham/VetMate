@@ -1,11 +1,23 @@
 package controllers
 
 import (
-	"errors"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func InsertNewPet(c *fiber.Ctx) error {
-	return errors.New("Holis")
+// InsertNewPet inserts a new pet into the database
+func InsertNewPetByUser(c *fiber.Ctx) error {
+	panic("implement me") // TODO: Implement
+}
+
+func InsertNewPetByVet(c *fiber.Ctx) error {
+	panic("implement me") // TODO: Implement
+}
+
+func DeletePet(c *fiber.Ctx) error {
+	panic("implement me") // TODO: Implement
+}
+
+func UpdatePet(c *fiber.Ctx) error {
+	panic("implement me") // TODO: Implement
 }

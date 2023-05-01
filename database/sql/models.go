@@ -36,7 +36,6 @@ type Mascota struct {
 	RazaID                      sql.NullInt32  `json:"raza_id"`
 	Descripcion                 sql.NullString `json:"descripcion"`
 	Nombre                      sql.NullString `json:"nombre"`
-	EdadAprox                   sql.NullInt32  `json:"edad_aprox"`
 	Sexo                        sql.NullString `json:"sexo"`
 	Token                       string         `json:"token"`
 	ImgUrl                      sql.NullString `json:"img_url"`

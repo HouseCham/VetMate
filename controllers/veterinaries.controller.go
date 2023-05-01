@@ -1,6 +1,8 @@
 package controllers
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+)
 
 func InsertVetPlace(c *fiber.Ctx) error {
 	panic("not implemented") // TODO: Implement

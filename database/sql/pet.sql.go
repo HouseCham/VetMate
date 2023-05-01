@@ -10,34 +10,105 @@ import (
 	"database/sql"
 )
 
+const deletePet = `-- name: DeletePet :exec
+UPDATE mascotas
+SET fecha_delete = DATE_SUB(NOW(), INTERVAL 6 HOUR)
+WHERE id = ?
+`
+
+func (q *Queries) DeletePet(ctx context.Context, id int32) error {
+	_, err := q.db.ExecContext(ctx, deletePet, id)
+	return err
+}
+
+const getPetMainInfo = `-- name: GetPetMainInfo :one
+SELECT mascotas.id, mascotas.nombre, razas.nombre as 'raza', CONCAT(usuarios.nombre, ' ', usuarios.apellido_p, ' ', usuarios.apellido_m) as 'propietario', descripcion, sexo, FLOOR(DATEDIFF(NOW(), fecha_nacimiento) / 365) as 'edad', mascotas.img_url, fecha_nacimiento, fecha_esterilizacion, ultima_fecha_desparasitacion, ultima_fecha_vacunacion 
+FROM mascotas
+INNER JOIN usuarios ON propietario_id = usuarios.id
+INNER JOIN razas ON raza_id = razas.id
+WHERE mascotas.fecha_delete IS NULL AND mascotas.id = ?
+`
+
+type GetPetMainInfoRow struct {
+	ID                         int32          `json:"id"`
+	Nombre                     sql.NullString `json:"nombre"`
+	Raza                       sql.NullString `json:"raza"`
+	Propietario                string         `json:"propietario"`
+	Descripcion                sql.NullString `json:"descripcion"`
+	Sexo                       sql.NullString `json:"sexo"`
+	Edad                       int32          `json:"edad"`
+	ImgUrl                     sql.NullString `json:"img_url"`
+	FechaNacimiento            sql.NullTime   `json:"fecha_nacimiento"`
+	FechaEsterilizacion        sql.NullTime   `json:"fecha_esterilizacion"`
+	UltimaFechaDesparasitacion sql.NullTime   `json:"ultima_fecha_desparasitacion"`
+	UltimaFechaVacunacion      sql.NullTime   `json:"ultima_fecha_vacunacion"`
+}
+
+func (q *Queries) GetPetMainInfo(ctx context.Context, id int32) (GetPetMainInfoRow, error) {
+	row := q.db.QueryRowContext(ctx, getPetMainInfo, id)
+	var i GetPetMainInfoRow
+	err := row.Scan(
+		&i.ID,
+		&i.Nombre,
+		&i.Raza,
+		&i.Propietario,
+		&i.Descripcion,
+		&i.Sexo,
+		&i.Edad,
+		&i.ImgUrl,
+		&i.FechaNacimiento,
+		&i.FechaEsterilizacion,
+		&i.UltimaFechaDesparasitacion,
+		&i.UltimaFechaVacunacion,
+	)
+	return i, err
+}
+
 const insertNewPet = `-- name: InsertNewPet :exec
 INSERT INTO mascotas (
     propietario_id,
     raza_id,
-    token,
     descripcion,
     nombre,
-    edad_aprox
-) VALUES (?, ?, ?, ?, ?, ?)
+    sexo,
+    token,
+    img_url,
+    fecha_nacimiento
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type InsertNewPetParams struct {
-	PropietarioID sql.NullInt32  `json:"propietario_id"`
-	RazaID        sql.NullInt32  `json:"raza_id"`
-	Token         string         `json:"token"`
-	Descripcion   sql.NullString `json:"descripcion"`
-	Nombre        sql.NullString `json:"nombre"`
-	EdadAprox     sql.NullInt32  `json:"edad_aprox"`
+	PropietarioID   sql.NullInt32  `json:"propietario_id"`
+	RazaID          sql.NullInt32  `json:"raza_id"`
+	Descripcion     sql.NullString `json:"descripcion"`
+	Nombre          sql.NullString `json:"nombre"`
+	Sexo            sql.NullString `json:"sexo"`
+	Token           string         `json:"token"`
+	ImgUrl          sql.NullString `json:"img_url"`
+	FechaNacimiento sql.NullTime   `json:"fecha_nacimiento"`
 }
 
 func (q *Queries) InsertNewPet(ctx context.Context, arg InsertNewPetParams) error {
 	_, err := q.db.ExecContext(ctx, insertNewPet,
 		arg.PropietarioID,
 		arg.RazaID,
-		arg.Token,
 		arg.Descripcion,
 		arg.Nombre,
-		arg.EdadAprox,
+		arg.Sexo,
+		arg.Token,
+		arg.ImgUrl,
+		arg.FechaNacimiento,
 	)
+	return err
+}
+
+const newPetInValhalla = `-- name: NewPetInValhalla :exec
+UPDATE mascotas
+SET fecha_muerte = DATE_SUB(NOW(), INTERVAL 6 HOUR)
+WHERE id = ?
+`
+
+func (q *Queries) NewPetInValhalla(ctx context.Context, id int32) error {
+	_, err := q.db.ExecContext(ctx, newPetInValhalla, id)
 	return err
 }
