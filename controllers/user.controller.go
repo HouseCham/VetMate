@@ -68,18 +68,27 @@ func InsertNewUser(c *fiber.Ctx) error {
 		Token: util.RandomStringNum(10),
 	}
 
-	// Inserting info into the database
-	// if error occurs, return 500
-	err = Queries.InsertNewUser(c.Context(), params)
+	// Starting transaction
+	tx, err := DB.Begin()
 	if err != nil {
-		c.Status(fiber.StatusInternalServerError)
 		return c.JSON(fiber.Map{
-			"message": "Sorry, there was an error",
+			"message": "Error starting transaction",
+			"error":   err.Error(),
+		})
+	}
+	defer tx.Rollback()
+
+	// implementing transaction in queries
+	qtx := Queries.WithTx(tx)
+	err = qtx.InsertNewUser(c.Context(), params)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"message": "Sorry, there was an error inserting user info",
 			"error":   err.Error(),
 		})
 	}
 
-	return nil
+	return tx.Commit()
 }
 // GetUserByEmail gets a user by email
 // if user does not exist, return 404
