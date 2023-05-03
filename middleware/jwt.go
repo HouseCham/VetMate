@@ -15,7 +15,7 @@ func ShareConfigFile(config *config.Config) {
 	Config = config
 }
 
-func JwtMiddleware() fiber.Handler {
+func JwtMiddleware(onlyVet bool) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Get JWT token from Authorization header
 		authHeader := c.Get("Authorization")
@@ -38,6 +38,23 @@ func JwtMiddleware() fiber.Handler {
 
 		// Check if token is valid and contains the required claim
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			// check if endpoint is only for vets
+			if onlyVet {
+				// if theres a claim isVet and is false, return unauthorized
+				if isVet, ok := claims["isVet"].(bool); ok {
+					if !isVet {
+						return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+							"message": "Unauthorized",
+						})
+					}
+				} else {
+					return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+						"message": "Method only for vets",
+					})
+				}
+			}
+
+			// Get user or vet ID from JWT claim
 			if userId, ok := claims["sub"].(string); ok {
 				// Set authenticated user ID in request context
 				c.Locals("userId", userId)

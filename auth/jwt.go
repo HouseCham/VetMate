@@ -25,7 +25,7 @@ func GenerateJWT(id int32, isVet bool) (string, error) {
 	// the claims stablished
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": strconv.Itoa(int(id)),
-		"vet": isVet,
+		"isVet": isVet,
 		"exp": time.Now().Add(time.Hour * 1).Unix(),
 	})
 
