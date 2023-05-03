@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"strconv"
 
 	db "github.com/HouseCham/VetMate/database/sql"
 	"github.com/HouseCham/VetMate/util"
@@ -82,4 +83,41 @@ func DeletePet(c *fiber.Ctx) error {
 
 func UpdatePet(c *fiber.Ctx) error {
 	panic("implement me") // TODO: Implement
+}
+
+func GetPet(c *fiber.Ctx) error {
+	// first, we need to get the petId from the request params
+	// if error return 400
+	id := c.Params("petId")
+	if id == "" {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "There is an error with the request",
+			"error":   "petId is required",
+		})
+	}
+
+	// converting petId to int32
+	// if error return 400
+	petId, err := strconv.ParseInt(id, 10, 32)
+	if err != nil {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "There is an error with the request",
+			"error":   err.Error(),
+		})
+	}
+	petId32 := int32(petId)
+
+	// then, we need to get the vet info from the database
+	// if error occurs, return 404
+	mainInfo, err := Queries.GetPetMainInfo(c.Context(), petId32)
+	if err != nil {
+		c.Status(fiber.StatusNotFound)
+		return c.JSON(fiber.Map{
+			"message": "Could not get pet info",
+			"error":   err.Error(),
+		})
+	}
+	return c.JSON(mainInfo)
 }
