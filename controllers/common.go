@@ -64,9 +64,9 @@ func checkEmailAlreadyInUse(email string, isUserTable bool, c *fiber.Ctx) (strin
 	}
 
 	if err != nil {
-		return "there was an error on the server, try later", fiber.StatusInternalServerError, err
+		return "Hubo un error en el servidor", fiber.StatusInternalServerError, err
 	} else if emailExists > 0 {
-		return "conflict", fiber.StatusConflict, errors.New("email already in use")
+		return "conflicto", fiber.StatusConflict, errors.New("email ya usado por otro usuario")
 	}
-	return "success", fiber.StatusOK, nil
+	return "Éxito", fiber.StatusOK, nil
 }
