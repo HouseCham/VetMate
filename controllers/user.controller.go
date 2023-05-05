@@ -231,7 +231,6 @@ func UpdateUser(c *fiber.Ctx) error {
 
 	// Parse request body from JSON to struct
 	c.BodyParser(&request)
-
 	request.ID = userId
 
 	// Trim() and deleting blank spaces from request body
@@ -247,45 +246,54 @@ func UpdateUser(c *fiber.Ctx) error {
 		})
 	}
 
-	// mapping request body to update user database params
-	params := db.UpdateUserParams{
-		ID:         request.ID,
-		Nombre:     request.Nombre,
-		ApellidoP:  request.ApellidoP,
-		ApellidoM:  request.ApellidoM,
-		Telefono:   request.Telefono,
-		Calle:      request.Calle,
-		Colonia:    request.Colonia,
-		Ciudad:     request.Ciudad,
-		Estado:     request.Estado,
-		Cp:         request.Cp,
-		Pais:       request.Pais,
-		NumExt:     request.NumExt,
-		NumInt:     request.NumInt,
-		Referencia: request.Referencia,
-	}
+	// goroutine started to update user
+	updateUserChan := make(chan error)
+	go func() {
+		// mapping request body to update user database params
+		params := db.UpdateUserParams{
+			ID:         request.ID,
+			Nombre:     request.Nombre,
+			ApellidoP:  request.ApellidoP,
+			ApellidoM:  request.ApellidoM,
+			Telefono:   request.Telefono,
+			Calle:      request.Calle,
+			Colonia:    request.Colonia,
+			Ciudad:     request.Ciudad,
+			Estado:     request.Estado,
+			Cp:         request.Cp,
+			Pais:       request.Pais,
+			NumExt:     request.NumExt,
+			NumInt:     request.NumInt,
+			Referencia: request.Referencia,
+		}
 
-	// Starting transaction
-	tx, err := DB.Begin()
-	if err != nil {
+		// Starting transaction
+		tx, err := DB.Begin()
+		if err != nil {
+			updateUserChan <- errors.New("error al iniciar tx")
+		}
+		defer tx.Rollback()
+
+		// implementing transaction in queries
+		qtx := Queries.WithTx(tx)
+		err = qtx.UpdateUser(c.Context(), params)
+		if err != nil {
+			updateUserChan <- errors.New("error al actualizar usuario")
+		}
+
+		updateUserChan <- tx.Commit()
+	}()
+
+	if err := <-updateUserChan; err != nil {
 		return c.JSON(fiber.Map{
-			"message": "Error starting transaction",
+			"message": "Error al actualizar usuario",
 			"error":   err.Error(),
 		})
 	}
-	defer tx.Rollback()
 
-	// implementing transaction in queries
-	qtx := Queries.WithTx(tx)
-	err = qtx.UpdateUser(c.Context(), params)
-	if err != nil {
-		return c.JSON(fiber.Map{
-			"message": "Error updating vet",
-			"error":   err.Error(),
-		})
-	}
-
-	return tx.Commit()
+	return c.JSON(fiber.Map{
+		"message": "Usuario actualizado correctamente",
+	})
 }
 
 // DeleteUser deletes a user
@@ -302,25 +310,35 @@ func DeleteUser(c *fiber.Ctx) error {
 		})
 	}
 
-	// Starting transaction
-	tx, err := DB.Begin()
-	if err != nil {
+	// goroutine started to delete user
+	deleteUserChan := make(chan error)
+	go func() {
+		// Starting transaction
+		tx, err := DB.Begin()
+		if err != nil {
+			deleteUserChan <- errors.New("error al iniciar tx")
+		}
+		defer tx.Rollback()
+
+		// implementing transaction in queries
+		qtx := Queries.WithTx(tx)
+		err = qtx.DeleteUser(c.Context(), userId)
+		if err != nil {
+			deleteUserChan <- errors.New("error al eliminar usuario")
+		}
+
+		deleteUserChan <- tx.Commit()
+		close(deleteUserChan)
+	}()
+
+	if err := <-deleteUserChan; err != nil {
 		return c.JSON(fiber.Map{
-			"message": "Error starting transaction",
+			"message": "Ocurrió un error",
 			"error":   err.Error(),
 		})
 	}
-	defer tx.Rollback()
 
-	// implementing transaction in queries
-	qtx := Queries.WithTx(tx)
-	err = qtx.DeleteUser(c.Context(), userId)
-	if err != nil {
-		return c.JSON(fiber.Map{
-			"message": "Error deleting user",
-			"error":   err.Error(),
-		})
-	}
-
-	return tx.Commit()
+	return c.JSON(fiber.Map{
+		"message": "Usuario eliminado correctamente",
+	})
 }
