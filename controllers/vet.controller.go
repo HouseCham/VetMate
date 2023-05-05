@@ -268,7 +268,6 @@ func LoginVet(c *fiber.Ctx) error {
 
 	// Parse request body from JSON to struct
 	c.BodyParser(&request)
-
 	// Trim input fields from request body
 	purgeInputData(&request)
 
@@ -277,7 +276,7 @@ func LoginVet(c *fiber.Ctx) error {
 	if err := validations.ValidateRequest(&request, 3); err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
-			"message": "Invalid request body",
+			"message": responseMessages["invalidRequestBody"],
 			"error":   err.Error(),
 		})
 	}
@@ -290,6 +289,7 @@ func LoginVet(c *fiber.Ctx) error {
 		if err != nil {
 			c.Status(fiber.StatusNotFound)
 			loginVetChannel <- LoginResponse{
+				Jwt: "",
 				Err: errorMessages["getInfo"],
 			}
 		}
@@ -298,6 +298,7 @@ func LoginVet(c *fiber.Ctx) error {
 		if err := util.CheckPassword(request.Password, vet.Password); err != nil {
 			c.Status(fiber.StatusUnauthorized)
 			loginVetChannel <- LoginResponse{
+				Jwt: "",
 				Err: errorMessages["wrongPassword"],
 			}
 		}
@@ -308,12 +309,11 @@ func LoginVet(c *fiber.Ctx) error {
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
 			loginVetChannel <- LoginResponse{
+				Jwt: "",
 				Err: errorMessages["generateJWT"],
 			}
 		}
 
-		// Return 200 with token
-		c.Status(fiber.StatusOK)
 		loginVetChannel <- LoginResponse{
 			Jwt: tokenString,
 			Err: nil,
