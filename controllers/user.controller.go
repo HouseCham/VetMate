@@ -38,6 +38,7 @@ func InsertNewUser(c *fiber.Ctx) error {
 		})
 	}
 
+	// goroutine started to insert user into database
 	insertChan := make(chan error)
 	go func() {
 		// Hash password
@@ -87,7 +88,7 @@ func InsertNewUser(c *fiber.Ctx) error {
 		close(insertChan)
 	}()
 
-	if err := <- insertChan; err != nil {
+	if err := <-insertChan; err != nil {
 		return c.JSON(fiber.Map{
 			"mensaje": "Hubo un error al registrar usuario",
 			"error":   err.Error(),
@@ -113,16 +114,29 @@ func GetUserById(c *fiber.Ctx) error {
 		})
 	}
 
-	// then, we need to get the vet info from the database
-	// if error occurs, return 404
-	mainInfo, err := Queries.GetUserMainInfoById(c.Context(), userId)
-	if err != nil {
-		c.Status(fiber.StatusNotFound)
+	// goroutine started to get user info
+	getChan := make(chan db.GetUserMainInfoByIdRow)
+	go func() {
+		// then, we need to get the vet info from the database
+		// if error occurs, return 404
+		mainInfo, err := Queries.GetUserMainInfoById(c.Context(), userId)
+		if err != nil {
+			c.Status(fiber.StatusNotFound)
+			getChan <- db.GetUserMainInfoByIdRow{}
+		}
+		getChan <- mainInfo
+		close(getChan)
+	}()
+
+	// getting user info from channel
+	mainInfo := <-getChan
+	if mainInfo == (db.GetUserMainInfoByIdRow{}) {
 		return c.JSON(fiber.Map{
-			"message": "Could not get user info",
-			"error":   err.Error(),
+			"mensaje": "Hubo un error al obtener información del usuario",
+			"error":   "usuario no encontrado",
 		})
 	}
+
 	return c.JSON(mainInfo)
 }
 
@@ -149,6 +163,7 @@ func LoginUser(c *fiber.Ctx) error {
 		})
 	}
 
+	// goroutine started to login user
 	loginChannel := make(chan LoginResponse)
 	go func() {
 
