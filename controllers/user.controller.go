@@ -23,7 +23,7 @@ func InsertNewUser(c *fiber.Ctx) error {
 	if message, status, err := checkEmailAlreadyInUse(request.Email, true, c); err != nil {
 		c.Status(status)
 		return c.JSON(fiber.Map{
-			"message": message,
+			"message": responseMessages[message],
 			"error":   err.Error(),
 		})
 	}
@@ -33,7 +33,7 @@ func InsertNewUser(c *fiber.Ctx) error {
 	if err := validations.ValidateRequest(&request, 1); err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
-			"message": "There is an error with the request",
+			"message": responseMessages["invalidRequestBody"],
 			"error":   err.Error(),
 		})
 	}
@@ -72,7 +72,7 @@ func InsertNewUser(c *fiber.Ctx) error {
 		tx, err := DB.Begin()
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
-			insertChan <- errors.New("error con tx")
+			insertChan <- errorMessages["beginTX"]
 		}
 		defer tx.Rollback()
 
@@ -81,7 +81,7 @@ func InsertNewUser(c *fiber.Ctx) error {
 		err = qtx.InsertNewUser(c.Context(), params)
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
-			insertChan <- errors.New("error insertando info")
+			insertChan <- errorMessages["insertInfo"]
 		}
 
 		insertChan <- tx.Commit()
@@ -90,13 +90,13 @@ func InsertNewUser(c *fiber.Ctx) error {
 
 	if err := <-insertChan; err != nil {
 		return c.JSON(fiber.Map{
-			"mensaje": "Hubo un error al registrar usuario",
+			"mensaje": responseMessages["errorInsertingUser"],
 			"error":   err.Error(),
 		})
 	}
 
 	return c.JSON(fiber.Map{
-		"mensaje": "Usuario registrado exitosamente",
+		"mensaje": responseMessages["userInserted"],
 	})
 }
 
@@ -132,8 +132,7 @@ func GetUserById(c *fiber.Ctx) error {
 	mainInfo := <-getChan
 	if mainInfo == (db.GetUserMainInfoByIdRow{}) {
 		return c.JSON(fiber.Map{
-			"mensaje": "Hubo un error al obtener información del usuario",
-			"error":   "usuario no encontrado",
+			"mensaje": responseMessages["userNotFound"],
 		})
 	}
 
@@ -158,8 +157,7 @@ func LoginUser(c *fiber.Ctx) error {
 	if err := validations.ValidateRequest(&request, 3); err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
-			"mensaje": "Hubo un error al iniciar sesión",
-			"error":   "solicitud incorrecta",
+			"mensaje": responseMessages["invalidRequestBody"],
 		})
 	}
 
@@ -172,7 +170,7 @@ func LoginUser(c *fiber.Ctx) error {
 			c.Status(fiber.StatusInternalServerError)
 			loginChannel <- LoginResponse{
 				Jwt: "",
-				Err: errors.New("usuario o contraseña incorrecta"),
+				Err: errorMessages["wrongCredentials"],
 			}
 		}
 
@@ -182,7 +180,7 @@ func LoginUser(c *fiber.Ctx) error {
 			c.Status(fiber.StatusUnauthorized)
 			loginChannel <- LoginResponse{
 				Jwt: "",
-				Err: errors.New("usuario o contraseña incorrecta"),
+				Err: errorMessages["wrongCredentials"],
 			}
 		}
 
@@ -193,7 +191,7 @@ func LoginUser(c *fiber.Ctx) error {
 			c.Status(fiber.StatusInternalServerError)
 			loginChannel <- LoginResponse{
 				Jwt: "",
-				Err: err,
+				Err: errorMessages["generateJWT"],
 			}
 		}
 
@@ -207,7 +205,7 @@ func LoginUser(c *fiber.Ctx) error {
 	response := <-loginChannel
 	if response.Err != nil {
 		return c.JSON(fiber.Map{
-			"mensaje": "Hubo un error al iniciar sesión",
+			"mensaje": responseMessages["loginError"],
 			"error":   response.Err.Error(),
 		})
 	}
@@ -218,12 +216,11 @@ func LoginUser(c *fiber.Ctx) error {
 func UpdateUser(c *fiber.Ctx) error {
 	// Get the variable from the request context
 	// Variable not found or not of type string
-	userId, message, err := getIdFromRequestContext(c)
+	userId, _, err := getIdFromRequestContext(c)
 	if err != nil {
 		c.Status(fiber.StatusInternalServerError)
 		return c.JSON(fiber.Map{
-			"message": message,
-			"error":   err.Error(),
+			"message": responseMessages["getIdError"],
 		})
 	}
 
@@ -241,8 +238,7 @@ func UpdateUser(c *fiber.Ctx) error {
 	if err := validations.ValidateRequest(&request, 2); err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
-			"message": "Invalid request body",
-			"error":   err.Error(),
+			"message": responseMessages["invalidRequestBody"],
 		})
 	}
 
@@ -270,7 +266,7 @@ func UpdateUser(c *fiber.Ctx) error {
 		// Starting transaction
 		tx, err := DB.Begin()
 		if err != nil {
-			updateUserChan <- errors.New("error al iniciar tx")
+			updateUserChan <- errorMessages["transactionError"]
 		}
 		defer tx.Rollback()
 
@@ -287,13 +283,12 @@ func UpdateUser(c *fiber.Ctx) error {
 
 	if err := <-updateUserChan; err != nil {
 		return c.JSON(fiber.Map{
-			"message": "Error al actualizar usuario",
-			"error":   err.Error(),
+			"message": responseMessages["updateUserError"],
 		})
 	}
 
 	return c.JSON(fiber.Map{
-		"message": "Usuario actualizado correctamente",
+		"message": responseMessages["updateUserSuccess"],
 	})
 }
 
@@ -317,7 +312,7 @@ func DeleteUser(c *fiber.Ctx) error {
 		// Starting transaction
 		tx, err := DB.Begin()
 		if err != nil {
-			deleteUserChan <- errors.New("error al iniciar tx")
+			deleteUserChan <- errorMessages["beginTX"]
 		}
 		defer tx.Rollback()
 
@@ -325,7 +320,7 @@ func DeleteUser(c *fiber.Ctx) error {
 		qtx := Queries.WithTx(tx)
 		err = qtx.DeleteUser(c.Context(), userId)
 		if err != nil {
-			deleteUserChan <- errors.New("error al eliminar usuario")
+			deleteUserChan <- errorMessages["deleteInfo"]
 		}
 
 		deleteUserChan <- tx.Commit()
@@ -334,12 +329,11 @@ func DeleteUser(c *fiber.Ctx) error {
 
 	if err := <-deleteUserChan; err != nil {
 		return c.JSON(fiber.Map{
-			"message": "Ocurrió un error",
-			"error":   err.Error(),
+			"message": responseMessages["deleteUserError"],
 		})
 	}
 
 	return c.JSON(fiber.Map{
-		"message": "Usuario eliminado correctamente",
+		"message": responseMessages["deleteUserSuccess"],
 	})
 }

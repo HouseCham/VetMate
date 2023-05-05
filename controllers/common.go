@@ -26,21 +26,48 @@ var errorMessages = map[string]error{
 	"getInfo": errors.New("error al obtener información"),
 	"wrongPassword": errors.New("contraseña incorrecta"),
 	"generateJWT": errors.New("error al generar token"),
+	"wrongCredentials": errors.New("email o contraseña incorrectas"),
 }
 
 // responseMessages is a map that contains all the response messages
 // that are going to be sent to the client
 var responseMessages = map[string]string{
+	/* ========== Common ========== */
+	"serverError": "Hubo un error en el servidor",
+	"getIdError": "Hubo un error al obtener id",
+	"invalidRequestBody": "Cuerpo de la solicitud inválido",
+	
+	/* ========== Login ========== */
+	"emailInUse": "El correo ya está en uso",
+	"loginSuccess": "Sesión iniciada con éxito",
+	"loginError": "Hubo un error al iniciar sesión",
+	
+	/* ========== VET ========== */
+	// Insert
 	"vetNotRegistered": "Hubo un error al registrar veterinario",
 	"vetRegistered": "Veterinario registrado con éxito",
-	"invalidRequestBody": "Cuerpo de la solicitud inválido",
-	"noVetFound": "No se encontró veterinario",
+	// Update
 	"updateVetError": "Hubo un error al actualizar veterinario",
 	"updateVetSuccess": "Veterinario actualizado con éxito",
+	// Delete
 	"deleteVetError": "Hubo un error al eliminar veterinario",
 	"deleteVetSuccess": "Veterinario eliminado con éxito",
-	"loginError": "Hubo un error al iniciar sesión",
-	"loginSuccess": "Sesión iniciada con éxito",
+	// Get
+	"vetNotFound": "Veterinario no encontrado",
+	
+
+	/* ========== USER ========== */
+	// Insert
+	"userInserted": "Usuario registrado con éxito",
+	"errorInsertingUser": "Hubo un error al registrar usuario",
+	// Update
+	"updateUserError": "Hubo un error al actualizar usuario",
+	"updateUserSuccess": "Usuario actualizado con éxito",
+	// Delete
+	"deleteUserError": "Hubo un error al eliminar usuario",
+	"deleteUserSuccess": "Usuario eliminado con éxito",
+	// Get
+	"userNotFound": "Usuario no encontrado",
 }
 
 // ShareDbConnection is a function that shares the
@@ -93,9 +120,9 @@ func checkEmailAlreadyInUse(email string, isUserTable bool, c *fiber.Ctx) (strin
 	}
 
 	if err != nil {
-		return "Hubo un error en el servidor", fiber.StatusInternalServerError, err
+		return "serverError", fiber.StatusInternalServerError, err
 	} else if emailExists > 0 {
-		return "conflicto", fiber.StatusConflict, errors.New("email ya usado por otro usuario")
+		return "emailInUse", fiber.StatusConflict, errors.New("email ya usado por otro usuario")
 	}
 	return "Éxito", fiber.StatusOK, nil
 }
