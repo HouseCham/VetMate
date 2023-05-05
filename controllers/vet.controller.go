@@ -1,9 +1,6 @@
 package controllers
 
 import (
-	"errors"
-	"strconv"
-
 	"github.com/HouseCham/VetMate/auth"
 	db "github.com/HouseCham/VetMate/database/sql"
 	"github.com/HouseCham/VetMate/util"
@@ -39,56 +36,64 @@ func InsertNewVet(c *fiber.Ctx) error {
 	if err := validations.ValidateRequest(&request, 1); err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
-			"message": "Invalid request body",
+			"message": errorMessages["invalidRequestBody"],
 			"error":   err.Error(),
 		})
 	}
 
-	// Hash password
-	// if error occurs, return 500
-	request.Password, err = util.HashPassword(request.Password)
-	if err != nil {
-		c.Status(fiber.StatusInternalServerError)
+	// go routine for inserting vet start
+	insertVetChan := make(chan error)
+	go func() {
+		// Hash password
+		// if error occurs, return 500
+		request.Password, err = util.HashPassword(request.Password)
+		if err != nil {
+			c.Status(fiber.StatusInternalServerError)
+			insertVetChan <- errorMessages["hashPassword"]
+		}
+
+		// Mapping request body to InsertNewVetParams struct
+		params := db.InsertNewVetParams{
+			Nombre:    request.Nombre,
+			ApellidoP: request.ApellidoP,
+			ApellidoM: request.ApellidoM,
+			Password:  request.Password,
+			Email:     request.Email,
+			Telefono:  request.Telefono,
+			Token:     util.RandomStringNum(10),
+		}
+
+		// Starting transaction
+		tx, err := DB.Begin()
+		if err != nil {
+			c.Status(fiber.StatusInternalServerError)
+			insertVetChan <- errorMessages["beginTX"]
+		}
+		defer tx.Rollback()
+
+		// getting queries with transaction
+		qtx := Queries.WithTx(tx)
+		err = qtx.InsertNewVet(c.Context(), params)
+		if err != nil {
+			c.Status(fiber.StatusInternalServerError)
+			insertVetChan <- errorMessages["insertInfo"]
+		}
+		insertVetChan <- tx.Commit()
+		close(insertVetChan)
+	}()
+
+	if err := <-insertVetChan; err != nil {
 		return c.JSON(fiber.Map{
-			"message": "Error hashing password",
+			"mensaje": responseMessages["vetNotRegistered"],
 			"error":   err.Error(),
 		})
 	}
 
-	// Mapping request body to InsertNewVetParams struct
-	params := db.InsertNewVetParams{
-		Nombre:       request.Nombre,
-		ApellidoP:    request.ApellidoP,
-		ApellidoM:    request.ApellidoM,
-		Password: request.Password,
-		Email:        request.Email,
-		Telefono:     request.Telefono,
-		Token: util.RandomStringNum(10),
-	}
-
-	// Starting transaction
-	tx, err := DB.Begin()
-	if err != nil {
-		return c.JSON(fiber.Map{
-			"message": "Error starting transaction",
-			"error":   err.Error(),
-		})
-	}
-	defer tx.Rollback()
-
-	// getting queries with transaction
-	qtx := Queries.WithTx(tx)
-	err = qtx.InsertNewVet(c.Context(), params)
-	if err != nil {
-		return c.JSON(fiber.Map{
-			"message": "Error inserting new vet",
-			"error":   err.Error(),
-		})
-	}
-	return tx.Commit()
+	return c.JSON(fiber.Map{
+		"mensaje": responseMessages["vetRegistered"],
+	})
 }
 
-//! TODO: think if we need transaction for selecting data
 // GetVetById is a function that gets the vet info
 // by the vet id from the fiber context
 func GetVetById(c *fiber.Ctx) error {
@@ -103,16 +108,27 @@ func GetVetById(c *fiber.Ctx) error {
 		})
 	}
 
-	// then, we need to get the vet info from the database
-	// if error occurs, return 404
-	mainInfo, err := Queries.GetVetMainInfoById(c.Context(), vetId)
-	if err != nil {
-		c.Status(fiber.StatusNotFound)
+	getVetChan := make(chan db.GetVetMainInfoByIdRow)
+	go func() {
+		// then, we need to get the vet info from the database
+		// if error occurs, return 404
+		mainInfo, err := Queries.GetVetMainInfoById(c.Context(), vetId)
+		if err != nil {
+			c.Status(fiber.StatusNotFound)
+			getVetChan <- db.GetVetMainInfoByIdRow{}
+		}
+
+		getVetChan <- mainInfo
+		close(getVetChan)
+	}()
+
+	mainInfo := <-getVetChan
+	if mainInfo == (db.GetVetMainInfoByIdRow{}) {
 		return c.JSON(fiber.Map{
-			"message": "Could not get vet info",
-			"error":   err.Error(),
+			"message": responseMessages["vetNotFound"],
 		})
 	}
+
 	return c.JSON(mainInfo)
 }
 
@@ -146,42 +162,53 @@ func UpdateVet(c *fiber.Ctx) error {
 	if err := validations.ValidateRequest(&request, 2); err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
-			"message": "Invalid request body",
+			"message": errorMessages["invalidRequestBody"],
 			"error":   err.Error(),
 		})
 	}
 
-	// Mapping request body to db.UpdateVetParams struct
-	params := db.UpdateVetParams{
-		ID:        request.ID,
-		Nombre:    request.Nombre,
-		ApellidoP: request.ApellidoP,
-		ApellidoM: request.ApellidoM,
-		Telefono:  request.Telefono,
-		ImgUrl:    request.ImgUrl,
-	}
+	updateVetChan := make(chan error)
+	go func() {
+		// Mapping request body to db.UpdateVetParams struct
+		params := db.UpdateVetParams{
+			ID:        request.ID,
+			Nombre:    request.Nombre,
+			ApellidoP: request.ApellidoP,
+			ApellidoM: request.ApellidoM,
+			Telefono:  request.Telefono,
+			ImgUrl:    request.ImgUrl,
+		}
 
-	// Starting transaction
-	tx, err := DB.Begin()
-	if err != nil {
+		// Starting transaction
+		tx, err := DB.Begin()
+		if err != nil {
+			c.Status(fiber.StatusInternalServerError)
+			updateVetChan <- errorMessages["beginTX"]
+		}
+		defer tx.Rollback()
+
+		// getting queries with transaction
+		qtx := Queries.WithTx(tx)
+		err = qtx.UpdateVet(c.Context(), params)
+		if err != nil {
+			c.Status(fiber.StatusInternalServerError)
+			updateVetChan <- errorMessages["updateInfo"]
+		}
+
+		updateVetChan <- tx.Commit()
+		close(updateVetChan)
+	}()
+
+	if err := <-updateVetChan; err != nil {
 		return c.JSON(fiber.Map{
-			"message": "Error starting transaction",
-			"error":   err.Error(),
-		})
-	}
-	defer tx.Rollback()
-
-	// getting queries with transaction
-	qtx := Queries.WithTx(tx)
-	err = qtx.UpdateVet(c.Context(), params)
-	if err != nil {
-		return c.JSON(fiber.Map{
-			"message": "Error updating vet",
-			"error":   err.Error(),
+			"mensaje": responseMessages["updateVetError"],
+			"error":   err,
 		})
 	}
 
-	return tx.Commit()
+	return c.JSON(fiber.Map{
+		"mensaje": responseMessages["updateVetSuccess"],
+	})
 }
 
 // DeleteVet is a function that deletes the vet info
@@ -199,34 +226,45 @@ func DeleteVet(c *fiber.Ctx) error {
 		})
 	}
 
-	// Starting transaction
-	tx, err := DB.Begin()
-	if err != nil {
+	// delete vet go routine start
+	deleteVetChan := make(chan error)
+	go func() {
+		// Starting transaction
+		tx, err := DB.Begin()
+		if err != nil {
+			c.Status(fiber.StatusInternalServerError)
+			deleteVetChan <- errorMessages["beginTX"]
+		}
+		defer tx.Rollback()
+
+		// getting queries with transaction
+		qtx := Queries.WithTx(tx)
+		err = qtx.DeleteVet(c.Context(), vetId)
+		if err != nil {
+			c.Status(fiber.StatusInternalServerError)
+			deleteVetChan <- errorMessages["deleteInfo"]
+		}
+
+		deleteVetChan <- tx.Commit()
+		close(deleteVetChan)
+	}()
+
+	if err := <-deleteVetChan; err != nil {
 		return c.JSON(fiber.Map{
-			"message": "Error starting transaction",
-			"error":   err.Error(),
+			"mensaje": responseMessages["deleteVetError"],
+			"error":   err,
 		})
 	}
-	defer tx.Rollback()
 
-	// getting queries with transaction
-	qtx := Queries.WithTx(tx)
-	err = qtx.DeleteVet(c.Context(), vetId)
-	if err != nil {
-		return c.JSON(fiber.Map{
-			"message": "Error deleting vet",
-			"error":   err.Error(),
-		})
-	}
-
-	return tx.Commit()
+	return c.JSON(fiber.Map{
+		"mensaje": responseMessages["deleteVetSuccess"],
+	})
 }
 
 // LoginVet is a function that logs in the vet
 // by checking the email and password
 func LoginVet(c *fiber.Ctx) error {
 	var request db.Veterinario
-	var err error
 
 	// Parse request body from JSON to struct
 	c.BodyParser(&request)
@@ -243,58 +281,57 @@ func LoginVet(c *fiber.Ctx) error {
 			"error":   err.Error(),
 		})
 	}
-	// Get vet info from database
-	vet, err := Queries.GetVetByEmail(c.Context(), request.Email)
-	if err != nil {
-		c.Status(fiber.StatusNotFound)
-		return c.JSON(fiber.Map{
-			"message": "Could not get vet info",
-			"error":   err.Error(),
-		})
-	}
-	// Compare password
-	// if error occurs, return 500
-	if err := util.CheckPassword(request.Password, vet.Password); err != nil {
-		c.Status(fiber.StatusUnauthorized)
-		return c.JSON(fiber.Map{
-			"message": "Wrong password",
-			"error":   err.Error(),
-		})
-	}
 
-	// Generating jwt
-	// in case of error, returns 500 with error message
-	tokenString, err := auth.GenerateJWT(vet.ID, true)
-	if err != nil {
-		c.Status(fiber.StatusInternalServerError)
+	// goroutine started to login vet
+	loginVetChannel := make(chan LoginResponse)
+	go func() {
+		// Get vet info from database
+		vet, err := Queries.GetVetByEmail(c.Context(), request.Email)
+		if err != nil {
+			c.Status(fiber.StatusNotFound)
+			loginVetChannel <- LoginResponse{
+				Err: errorMessages["getInfo"],
+			}
+		}
+		// Compare password
+		// if error occurs, return 500
+		if err := util.CheckPassword(request.Password, vet.Password); err != nil {
+			c.Status(fiber.StatusUnauthorized)
+			loginVetChannel <- LoginResponse{
+				Err: errorMessages["wrongPassword"],
+			}
+		}
+
+		// Generating jwt
+		// in case of error, returns 500 with error message
+		tokenString, err := auth.GenerateJWT(vet.ID, true)
+		if err != nil {
+			c.Status(fiber.StatusInternalServerError)
+			loginVetChannel <- LoginResponse{
+				Err: errorMessages["generateJWT"],
+			}
+		}
+
+		// Return 200 with token
+		c.Status(fiber.StatusOK)
+		loginVetChannel <- LoginResponse{
+			Jwt: tokenString,
+			Err: nil,
+		}
+		close(loginVetChannel)
+	}()
+
+	// Get response from goroutine
+	response := <-loginVetChannel
+	if response.Err != nil {
 		return c.JSON(fiber.Map{
-			"message": "Failed to create the token",
-			"error":   err.Error(),
+			"message": responseMessages["loginError"],
+			"error":   response.Err.Error(),
 		})
 	}
 
 	return c.JSON(fiber.Map{
-		"message": "Success",
-		"token":   tokenString,
+		"message": responseMessages["loginSuccess"],
+		"jwt":     response.Jwt,
 	})
-}
-
-// getIdFromRequestContext is a function that gets the vet id
-// from the request context -> c.Locals("userId")
-// returns the vet id as int32
-func getIdFromRequestContext(c *fiber.Ctx) (int32, string, error) {
-	// Get the variable from the request context
-	// Variable not found or not of type string
-	vetIdStr, ok := c.Locals("userId").(string)
-	if !ok {
-		return 0, "Error", errors.New("error getting vet id")
-	}
-
-	// Convert the vetIdStr to int32
-	vetId, err := strconv.Atoi(vetIdStr)
-	if err != nil {
-		return 0, "Invalid ID", err
-	}
-
-	return int32(vetId), "", nil
 }

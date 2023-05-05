@@ -282,6 +282,7 @@ func UpdateUser(c *fiber.Ctx) error {
 		}
 
 		updateUserChan <- tx.Commit()
+		close(updateUserChan)
 	}()
 
 	if err := <-updateUserChan; err != nil {

@@ -3,6 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"errors"
+	"strconv"
 
 	"github.com/HouseCham/VetMate/config"
 	db "github.com/HouseCham/VetMate/database/sql"
@@ -13,6 +14,34 @@ import (
 var DB *sql.DB
 var Queries *db.Queries
 var Config *config.Config
+
+// errorMessages is a map that contains all the error messages
+// that are going to be sent to the client
+var errorMessages = map[string]error{
+	"beginTX": errors.New("error al iniciar transacción"),
+	"updateInfo": errors.New("error al actualizar información"),
+	"insertInfo": errors.New("error al insertar información"),
+	"hashPassword": errors.New("error al encriptar contraseña"),
+	"deleteInfo": errors.New("error al eliminar información"),
+	"getInfo": errors.New("error al obtener información"),
+	"wrongPassword": errors.New("contraseña incorrecta"),
+	"generateJWT": errors.New("error al generar token"),
+}
+
+// responseMessages is a map that contains all the response messages
+// that are going to be sent to the client
+var responseMessages = map[string]string{
+	"vetNotRegistered": "Hubo un error al registrar veterinario",
+	"vetRegistered": "Veterinario registrado con éxito",
+	"invalidRequestBody": "Cuerpo de la solicitud inválido",
+	"noVetFound": "No se encontró veterinario",
+	"updateVetError": "Hubo un error al actualizar veterinario",
+	"updateVetSuccess": "Veterinario actualizado con éxito",
+	"deleteVetError": "Hubo un error al eliminar veterinario",
+	"deleteVetSuccess": "Veterinario eliminado con éxito",
+	"loginError": "Hubo un error al iniciar sesión",
+	"loginSuccess": "Sesión iniciada con éxito",
+}
 
 // ShareDbConnection is a function that shares the
 // database connection to all controllers
@@ -69,4 +98,24 @@ func checkEmailAlreadyInUse(email string, isUserTable bool, c *fiber.Ctx) (strin
 		return "conflicto", fiber.StatusConflict, errors.New("email ya usado por otro usuario")
 	}
 	return "Éxito", fiber.StatusOK, nil
+}
+
+// getIdFromRequestContext is a function that gets the vet id
+// from the request context -> c.Locals("userId")
+// returns the vet id as int32
+func getIdFromRequestContext(c *fiber.Ctx) (int32, string, error) {
+	// Get the variable from the request context
+	// Variable not found or not of type string
+	vetIdStr, ok := c.Locals("userId").(string)
+	if !ok {
+		return 0, "Error", errors.New("error getting vet id")
+	}
+
+	// Convert the vetIdStr to int32
+	vetId, err := strconv.Atoi(vetIdStr)
+	if err != nil {
+		return 0, "Invalid ID", err
+	}
+
+	return int32(vetId), "", nil
 }
