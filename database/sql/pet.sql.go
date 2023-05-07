@@ -21,6 +21,17 @@ func (q *Queries) DeletePet(ctx context.Context, id int32) error {
 	return err
 }
 
+const getOwnerIdByPetId = `-- name: GetOwnerIdByPetId :one
+SELECT propietario_id FROM mascotas WHERE id = ?
+`
+
+func (q *Queries) GetOwnerIdByPetId(ctx context.Context, id int32) (sql.NullInt32, error) {
+	row := q.db.QueryRowContext(ctx, getOwnerIdByPetId, id)
+	var propietario_id sql.NullInt32
+	err := row.Scan(&propietario_id)
+	return propietario_id, err
+}
+
 const getPetMainInfo = `-- name: GetPetMainInfo :one
 SELECT mascotas.id, mascotas.nombre, razas.nombre as 'raza', CONCAT(usuarios.nombre, ' ', usuarios.apellido_p, ' ', usuarios.apellido_m) as 'propietario', descripcion, sexo, FLOOR(DATEDIFF(NOW(), fecha_nacimiento) / 365) as 'edad', mascotas.img_url, fecha_esterilizacion, ultima_fecha_desparasitacion, ultima_fecha_vacunacion 
 FROM mascotas
@@ -108,5 +119,34 @@ WHERE id = ?
 
 func (q *Queries) NewPetInValhalla(ctx context.Context, id int32) error {
 	_, err := q.db.ExecContext(ctx, newPetInValhalla, id)
+	return err
+}
+
+const updatePet = `-- name: UpdatePet :exec
+UPDATE mascotas
+SET raza_id = ?, descripcion = ?, nombre = ?, sexo = ?, img_url = ?, fecha_nacimiento = ?, fecha_update = DATE_SUB(NOW(), INTERVAL 6 HOUR)
+WHERE id = ?
+`
+
+type UpdatePetParams struct {
+	RazaID          sql.NullInt32  `json:"raza_id"`
+	Descripcion     sql.NullString `json:"descripcion"`
+	Nombre          sql.NullString `json:"nombre"`
+	Sexo            string         `json:"sexo"`
+	ImgUrl          sql.NullString `json:"img_url"`
+	FechaNacimiento sql.NullTime   `json:"fecha_nacimiento"`
+	ID              int32          `json:"id"`
+}
+
+func (q *Queries) UpdatePet(ctx context.Context, arg UpdatePetParams) error {
+	_, err := q.db.ExecContext(ctx, updatePet,
+		arg.RazaID,
+		arg.Descripcion,
+		arg.Nombre,
+		arg.Sexo,
+		arg.ImgUrl,
+		arg.FechaNacimiento,
+		arg.ID,
+	)
 	return err
 }
