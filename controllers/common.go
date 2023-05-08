@@ -36,6 +36,7 @@ var responseMessages = map[string]string{
 	"serverError": "Hubo un error en el servidor",
 	"getIdError": "Hubo un error al obtener id",
 	"invalidRequestBody": "Cuerpo de la solicitud inválido",
+	"notAuthorized": "No autorizado",
 	
 	/* ========== Login ========== */
 	"emailInUse": "El correo ya está en uso",
@@ -68,6 +69,20 @@ var responseMessages = map[string]string{
 	"deleteUserSuccess": "Usuario eliminado con éxito",
 	// Get
 	"userNotFound": "Usuario no encontrado",
+
+	/* ========== PET ========== */
+	// Insert
+	"petInserted": "Mascota registrada con éxito",
+	"errorInsertingPet": "Hubo un error al registrar mascota",
+	// Update
+	"updatePetError": "Hubo un error al actualizar mascota",
+	"updatePetSuccess": "Mascota actualizada con éxito",
+	// Delete
+	"deletePetError": "Hubo un error al eliminar mascota",
+	"deletePetSuccess": "Mascota eliminada con éxito",
+	// Get
+	"petNotFound": "Mascota no encontrada",
+	"petsNotFound": "Mascotas no encontradas",
 }
 
 // ShareDbConnection is a function that shares the
