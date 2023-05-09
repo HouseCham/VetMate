@@ -37,6 +37,7 @@ var responseMessages = map[string]string{
 	"getIdError": "Hubo un error al obtener id",
 	"invalidRequestBody": "Cuerpo de la solicitud inválido",
 	"notAuthorized": "No autorizado",
+	"commitTx": "Error al confirmar transacción",
 	
 	/* ========== Login ========== */
 	"emailInUse": "El correo ya está en uso",
@@ -83,6 +84,10 @@ var responseMessages = map[string]string{
 	// Get
 	"petNotFound": "Mascota no encontrada",
 	"petsNotFound": "Mascotas no encontradas",
+	// Pass away
+	"petPassAwayError": "Hubo un error al registrar fallecimiento de mascota",
+	"petPassAwaySuccess": "Lamentamos mucho tu pérdida, esperamos que estés bien",
+
 }
 
 // ShareDbConnection is a function that shares the
