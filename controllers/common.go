@@ -27,6 +27,7 @@ var errorMessages = map[string]error{
 	"wrongPassword": errors.New("contraseña incorrecta"),
 	"generateJWT": errors.New("error al generar token"),
 	"wrongCredentials": errors.New("email o contraseña incorrectas"),
+	"notOwner": errors.New("no eres el dueño de esta mascota"),
 }
 
 // responseMessages is a map that contains all the response messages
@@ -73,8 +74,8 @@ var responseMessages = map[string]string{
 
 	/* ========== PET ========== */
 	// Insert
-	"petInserted": "Mascota registrada con éxito",
-	"errorInsertingPet": "Hubo un error al registrar mascota",
+	"insertPetSuccess": "Mascota registrada con éxito",
+	"insertPetError": "Hubo un error al registrar mascota",
 	// Update
 	"updatePetError": "Hubo un error al actualizar mascota",
 	"updatePetSuccess": "Mascota actualizada con éxito",
