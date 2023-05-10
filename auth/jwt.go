@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"strconv"
 	"time"
 
@@ -25,14 +26,14 @@ func GenerateJWT(id int32, isVet bool) (string, error) {
 	// the claims stablished
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": strconv.Itoa(int(id)),
-		"vet": isVet,
+		"isVet": isVet,
 		"exp": time.Now().Add(time.Hour * 1).Unix(),
 	})
 
 	// then we generate the jwt token string with the secret found in config file
 	tokenString, err := token.SignedString([]byte(Config.DevConfiguration.Jwt.Secret))
 	if err != nil {
-		return "", err
+		return "", errors.New("error al querer generar jwt")
 	}
 
 	return tokenString, nil

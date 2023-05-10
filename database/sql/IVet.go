@@ -195,3 +195,13 @@ func isValidInt(numberStr string, fieldName string) error {
 	}
 	return nil
 }
+
+func hasOnlyAlphanumericAndPunctuation(str string) bool {
+	// Regular expression pattern for letters and punctuation signs
+	pattern := "^[a-zA-Z0-9[:punct:]]+$"
+	// Compile the regular expression
+	regex := regexp.MustCompile(pattern)
+	// Test if the string matches the pattern
+	isValid := regex.MatchString(str)
+	return isValid
+}
