@@ -18,83 +18,91 @@ var Config *config.Config
 // errorMessages is a map that contains all the error messages
 // that are going to be sent to the client
 var errorMessages = map[string]error{
-	"beginTX": errors.New("error al iniciar transacción"),
-	"updateInfo": errors.New("error al actualizar información"),
-	"insertInfo": errors.New("error al insertar información"),
-	"hashPassword": errors.New("error al encriptar contraseña"),
-	"deleteInfo": errors.New("error al eliminar información"),
-	"getInfo": errors.New("error al obtener información"),
-	"wrongPassword": errors.New("contraseña incorrecta"),
-	"generateJWT": errors.New("error al generar token"),
+	"beginTX":          errors.New("error al iniciar transacción"),
+	"updateInfo":       errors.New("error al actualizar información"),
+	"insertInfo":       errors.New("error al insertar información"),
+	"hashPassword":     errors.New("error al encriptar contraseña"),
+	"deleteInfo":       errors.New("error al eliminar información"),
+	"getInfo":          errors.New("error al obtener información"),
+	"wrongPassword":    errors.New("contraseña incorrecta"),
+	"generateJWT":      errors.New("error al generar token"),
 	"wrongCredentials": errors.New("email o contraseña incorrectas"),
-	"notOwner": errors.New("no eres el dueño de esta mascota"),
-	"serverError": errors.New("error en el servidor"),
-	"registerError": errors.New("error al registrar usuario"),
+	"notOwner":         errors.New("no eres el dueño de esta mascota"),
+	"serverError":      errors.New("error en el servidor"),
+	"registerError":    errors.New("error al registrar usuario"),
 }
 
 // responseMessages is a map that contains all the response messages
 // that are going to be sent to the client
 var responseMessages = map[string]string{
 	/* ========== Common ========== */
-	"serverError": "Hubo un error en el servidor",
-	"getIdError": "Hubo un error al obtener id",
+	"serverError":        "Hubo un error en el servidor",
+	"getIdError":         "Hubo un error al obtener id",
 	"invalidRequestBody": "Cuerpo de la solicitud inválido",
-	"notAuthorized": "No autorizado",
-	"commitTx": "Error al confirmar transacción",
-	
+	"notAuthorized":      "No autorizado",
+	"commitTx":           "Error al confirmar transacción",
+
 	/* ========== Login ========== */
-	"emailInUse": "El correo ya está en uso",
+	"emailInUse":   "El correo ya está en uso",
 	"loginSuccess": "Sesión iniciada con éxito",
-	"loginError": "Hubo un error al iniciar sesión",
+	"loginError":   "Hubo un error al iniciar sesión",
 
 	/* ========== Register ========== */
 	"registerSuccess": "Usuario registrado con éxito",
-	"registerError": "Hubo un error al registrar usuario",
-	
+	"registerError":   "Hubo un error al registrar usuario",
+
 	/* ========== VET ========== */
 	// Insert
 	"vetNotRegistered": "Hubo un error al registrar veterinario",
-	"vetRegistered": "Veterinario registrado con éxito",
+	"vetRegistered":    "Veterinario registrado con éxito",
 	// Update
-	"updateVetError": "Hubo un error al actualizar veterinario",
+	"updateVetError":   "Hubo un error al actualizar veterinario",
 	"updateVetSuccess": "Veterinario actualizado con éxito",
 	// Delete
-	"deleteVetError": "Hubo un error al eliminar veterinario",
+	"deleteVetError":   "Hubo un error al eliminar veterinario",
 	"deleteVetSuccess": "Veterinario eliminado con éxito",
 	// Get
 	"vetNotFound": "Veterinario no encontrado",
-	
 
 	/* ========== USER ========== */
 	// Insert
-	"userInserted": "Usuario registrado con éxito",
+	"userInserted":       "Usuario registrado con éxito",
 	"errorInsertingUser": "Hubo un error al registrar usuario",
 	// Update
-	"updateUserError": "Hubo un error al actualizar usuario",
+	"updateUserError":   "Hubo un error al actualizar usuario",
 	"updateUserSuccess": "Usuario actualizado con éxito",
 	// Delete
-	"deleteUserError": "Hubo un error al eliminar usuario",
+	"deleteUserError":   "Hubo un error al eliminar usuario",
 	"deleteUserSuccess": "Usuario eliminado con éxito",
 	// Get
 	"userNotFound": "Usuario no encontrado",
+	"userFound": "Usuario encontrado",
 
 	/* ========== PET ========== */
 	// Insert
 	"insertPetSuccess": "Mascota registrada con éxito",
-	"insertPetError": "Hubo un error al registrar mascota",
+	"insertPetError":   "Hubo un error al registrar mascota",
 	// Update
-	"updatePetError": "Hubo un error al actualizar mascota",
+	"updatePetError":   "Hubo un error al actualizar mascota",
 	"updatePetSuccess": "Mascota actualizada con éxito",
 	// Delete
-	"deletePetError": "Hubo un error al eliminar mascota",
+	"deletePetError":   "Hubo un error al eliminar mascota",
 	"deletePetSuccess": "Mascota eliminada con éxito",
 	// Get
-	"petNotFound": "Mascota no encontrada",
+	"petNotFound":  "Mascota no encontrada",
 	"petsNotFound": "Mascotas no encontradas",
 	// Pass away
-	"petPassAwayError": "Hubo un error al registrar fallecimiento de mascota",
+	"petPassAwayError":   "Hubo un error al registrar fallecimiento de mascota",
 	"petPassAwaySuccess": "Lamentamos mucho tu pérdida, esperamos que estés bien",
+}
 
+// HttpGetResponse is the response
+// for all the Get functions
+// for GoRoutines
+type HttpGetResponse struct {
+	Message string      `json:"message"`
+	Err     error       `json:"error"`
+	Object  interface{} `json:"pet"`
 }
 
 // ShareDbConnection is a function that shares the

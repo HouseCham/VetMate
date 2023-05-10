@@ -118,42 +118,70 @@ func InsertNewUser(c *fiber.Ctx) error {
 // GetUserByEmail gets a user by email
 // if user does not exist, return 404
 func GetUserById(c *fiber.Ctx) error {
-	// Get the variable from the request context
-	// Variable not found or not of type string
-	userId, message, err := getIdFromRequestContext(c)
-	if err != nil {
-		c.Status(fiber.StatusInternalServerError)
-		return c.JSON(fiber.Map{
-			"message": message,
-			"error":   err.Error(),
-		})
-	}
-
 	// goroutine started to get user info
-	getChan := make(chan db.GetUserMainInfoByIdRow)
+	getChan := make(chan HttpGetResponse)
 	go func() {
-		// then, we need to get the vet info from the database
-		// if error occurs, return 404
-		mainInfo, err := Queries.GetUserMainInfoById(c.Context(), userId)
+		// Get the variable from the request context
+		// Variable not found or not of type string
+		userId, message, err := getIdFromRequestContext(c)
 		if err != nil {
-			c.Status(fiber.StatusNotFound)
-			getChan <- db.GetUserMainInfoByIdRow{}
+			c.Status(fiber.StatusInternalServerError)
+			getChan <- HttpGetResponse{
+				Message: message,
+				Err:     err,
+				Object:  db.GetUserMainInfoByIdRow{},
+			}
+		} else {
+			// then, we need to get the vet info from the database
+			mainInfo, err := Queries.GetUserMainInfoById(c.Context(), userId)
+			// handling db select error
+			if err != nil {
+				// if no user is returned
+				if errors.Is(err, sql.ErrNoRows) {
+					c.Status(fiber.StatusNotFound)
+					getChan <- HttpGetResponse{
+						Message: responseMessages["userNotFound"],
+						Err:     err,
+						Object:  db.GetUserMainInfoByIdRow{},
+					}
+				} else {
+					// in case there is a server error
+					c.Status(fiber.StatusInternalServerError)
+					getChan <- HttpGetResponse{
+						Message: responseMessages["serverError"],
+						Err:     err,
+						Object:  db.GetUserMainInfoByIdRow{},
+					}
+				}
+			} else {
+				//returning user found
+				getChan <- HttpGetResponse{
+					Message: responseMessages["userFound"],
+					Err:     nil,
+					Object:  mainInfo,
+				}
+			}
 		}
-		getChan <- mainInfo
 		close(getChan)
 	}()
 
 	// getting user info from channel
-	mainInfo := <-getChan
-	if mainInfo == (db.GetUserMainInfoByIdRow{}) {
+	chanResponse := <-getChan
+	if chanResponse.Err != nil {
 		return c.JSON(fiber.Map{
-			"message": responseMessages["userNotFound"],
+			"message": chanResponse.Message,
+			"error":   chanResponse.Err.Error(),
+		})
+	} else {
+		return c.JSON(fiber.Map{
+			"message": chanResponse.Message,
+			"user":    chanResponse.Object,
 		})
 	}
-
-	return c.JSON(mainInfo)
 }
 
+// LoginResponse is a struct that contains
+// the jwt and error returned from login functions
 type LoginResponse struct {
 	Jwt string `json:"jwt"`
 	Err error  `json:"error"`

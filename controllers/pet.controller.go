@@ -325,28 +325,19 @@ func UpdatePet(c *fiber.Ctx) error {
 	})
 }
 
-// GetPetResponse is the response
-// for the GetPet function
-// for GoRoutines
-type GetPetResponse struct {
-	Message string               `json:"message"`
-	Err     error                `json:"error"`
-	Pet     db.GetPetMainInfoRow `json:"pet"`
-}
-
 // GetPet gets a pet from the database by a user
 func GetPet(c *fiber.Ctx) error {
 	// Starting goroutine
-	getPetChan := make(chan GetPetResponse)
+	getPetChan := make(chan HttpGetResponse)
 	go func() {
 		// Getting the ownerId from the request context
 		requestOwnerId, message, err := getIdFromRequestContext(c)
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
-			getPetChan <- GetPetResponse{
+			getPetChan <- HttpGetResponse{
 				Message: message,
 				Err:     err,
-				Pet:     db.GetPetMainInfoRow{},
+				Object:     db.GetPetMainInfoRow{},
 			}
 			close(getPetChan)
 		}
@@ -355,10 +346,10 @@ func GetPet(c *fiber.Ctx) error {
 		petId, err := getPetIdFromUri(c)
 		if err != nil {
 			c.Status(fiber.StatusBadRequest)
-			getPetChan <- GetPetResponse{
+			getPetChan <- HttpGetResponse{
 				Message: responseMessages["invalidRequestBody"],
 				Err:     nil,
-				Pet:     db.GetPetMainInfoRow{},
+				Object:     db.GetPetMainInfoRow{},
 			}
 			close(getPetChan)
 		}
@@ -366,18 +357,18 @@ func GetPet(c *fiber.Ctx) error {
 		// Checking if the user is the owner of the pet
 		if isOwner, err := isUserOwner(requestOwnerId, petId, c); err != nil {
 			c.Status(fiber.StatusInternalServerError)
-			getPetChan <- GetPetResponse{
+			getPetChan <- HttpGetResponse{
 				Message: responseMessages["serverError"],
 				Err:     err,
-				Pet:     db.GetPetMainInfoRow{},
+				Object:     db.GetPetMainInfoRow{},
 			}
 			close(getPetChan)
 		} else if !isOwner {
 			c.Status(fiber.StatusUnauthorized)
-			getPetChan <- GetPetResponse{
+			getPetChan <- HttpGetResponse{
 				Message: responseMessages["unauthorized"],
 				Err:     nil,
-				Pet:     db.GetPetMainInfoRow{},
+				Object:     db.GetPetMainInfoRow{},
 			}
 			close(getPetChan)
 		}
@@ -387,20 +378,20 @@ func GetPet(c *fiber.Ctx) error {
 		mainInfo, err := Queries.GetPetMainInfo(c.Context(), petId)
 		if err != nil {
 			c.Status(fiber.StatusNotFound)
-			getPetChan <- GetPetResponse{
+			getPetChan <- HttpGetResponse{
 				Message: responseMessages["petNotFound"],
 				Err:     err,
-				Pet:     db.GetPetMainInfoRow{},
+				Object:     db.GetPetMainInfoRow{},
 			}
 			close(getPetChan)
 		}
 
 		// Everything went well
 		// closing channel
-		getPetChan <- GetPetResponse{
+		getPetChan <- HttpGetResponse{
 			Message: "",
 			Err:     nil,
-			Pet:     mainInfo,
+			Object:     mainInfo,
 		}
 		close(getPetChan)
 	}()
@@ -415,7 +406,7 @@ func GetPet(c *fiber.Ctx) error {
 	}
 
 	// Everything went well
-	return c.JSON(serverResponse.Pet)
+	return c.JSON(serverResponse.Object)
 }
 
 // NewWarriorInValhalla updates the 'fecha_muerte' column of a pet in the database to the current date. This is done when a pet dies and goes to Valhalla. This function can only be done by the owner of the pet
