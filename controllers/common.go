@@ -30,6 +30,8 @@ var errorMessages = map[string]error{
 	"notOwner":         errors.New("no eres el dueño de esta mascota"),
 	"serverError":      errors.New("error en el servidor"),
 	"registerError":    errors.New("error al registrar usuario"),
+	"getIdError":       errors.New("error al obtener id"),
+	"dbServerError":    errors.New("error con la base de datos"),
 }
 
 // responseMessages is a map that contains all the response messages
@@ -37,7 +39,6 @@ var errorMessages = map[string]error{
 var responseMessages = map[string]string{
 	/* ========== Common ========== */
 	"serverError":        "Hubo un error en el servidor",
-	"getIdError":         "Hubo un error al obtener id",
 	"invalidRequestBody": "Cuerpo de la solicitud inválido",
 	"notAuthorized":      "No autorizado",
 	"commitTx":           "Error al confirmar transacción",
@@ -76,7 +77,7 @@ var responseMessages = map[string]string{
 	"deleteUserSuccess": "Usuario eliminado con éxito",
 	// Get
 	"userNotFound": "Usuario no encontrado",
-	"userFound": "Usuario encontrado",
+	"userFound":    "Usuario encontrado",
 
 	/* ========== PET ========== */
 	// Insert

@@ -255,42 +255,28 @@ func LoginUser(c *fiber.Ctx) error {
 	}()
 
 	// handling channel response
-	response := <-loginChannel
-	if response.Err != nil {
+	chanResponse := <-loginChannel
+	if chanResponse.Err != nil {
 		return c.JSON(fiber.Map{
 			"message": responseMessages["loginError"],
-			"error":   response.Err.Error(),
+			"error":   chanResponse.Err.Error(),
+		})
+	} else {
+		// if everything is ok, return jwt
+		return c.JSON(fiber.Map{
+			"message": responseMessages["loginSuccess"],
+			"jwt":     chanResponse.Jwt,
 		})
 	}
-
-	// if everything is ok, return jwt
-	return c.JSON(fiber.Map{
-		"message": responseMessages["loginSuccess"],
-		"jwt":     response.Jwt,
-	})
 }
 
 // UpdateUser updates a user
 func UpdateUser(c *fiber.Ctx) error {
-	// Get the variable from the request context
-	// Variable not found or not of type string
-	userId, _, err := getIdFromRequestContext(c)
-	if err != nil {
-		c.Status(fiber.StatusInternalServerError)
-		return c.JSON(fiber.Map{
-			"message": responseMessages["getIdError"],
-		})
-	}
-
 	var request db.Usuario
-
 	// Parse request body from JSON to struct
 	c.BodyParser(&request)
-	request.ID = userId
-
 	// Trim() and deleting blank spaces from request body
 	purgeInputData(&request)
-
 	// Validate request body
 	// if not valid, return 400
 	if err := validations.ValidateRequest(&request, 2); err != nil {
@@ -303,51 +289,63 @@ func UpdateUser(c *fiber.Ctx) error {
 	// goroutine started to update user
 	updateUserChan := make(chan error)
 	go func() {
-		// mapping request body to update user database params
-		params := db.UpdateUserParams{
-			ID:         request.ID,
-			Nombre:     request.Nombre,
-			ApellidoP:  request.ApellidoP,
-			ApellidoM:  request.ApellidoM,
-			Telefono:   request.Telefono,
-			Calle:      request.Calle,
-			Colonia:    request.Colonia,
-			Ciudad:     request.Ciudad,
-			Estado:     request.Estado,
-			Cp:         request.Cp,
-			Pais:       request.Pais,
-			NumExt:     request.NumExt,
-			NumInt:     request.NumInt,
-			Referencia: request.Referencia,
-		}
-
-		// Starting transaction
-		tx, err := DB.Begin()
+		// Get the variable from the request context
+		// Variable not found or not of type string
+		userId, _, err := getIdFromRequestContext(c)
+		// if error getting id from request
 		if err != nil {
-			updateUserChan <- errorMessages["transactionError"]
+			c.Status(fiber.StatusInternalServerError)
+			updateUserChan <- errorMessages["getIdError"]
+		} else {
+			// mapping request body to update user database params
+			params := db.UpdateUserParams{
+				ID:         userId,
+				Nombre:     request.Nombre,
+				ApellidoP:  request.ApellidoP,
+				ApellidoM:  request.ApellidoM,
+				Telefono:   request.Telefono,
+				Calle:      request.Calle,
+				Colonia:    request.Colonia,
+				Ciudad:     request.Ciudad,
+				Estado:     request.Estado,
+				Cp:         request.Cp,
+				Pais:       request.Pais,
+				NumExt:     request.NumExt,
+				NumInt:     request.NumInt,
+				Referencia: request.Referencia,
+			}
+			// Starting transaction
+			tx, err := DB.Begin()
+			// if error starting transaction
+			if err != nil {
+				updateUserChan <- errorMessages["beginTX"]
+			} else {
+				// implementing transaction in queries
+				qtx := Queries.WithTx(tx)
+				err = qtx.UpdateUser(c.Context(), params)
+				// if error updating user
+				if err != nil {
+					updateUserChan <- errorMessages["dbServerError"]
+				} else {
+					updateUserChan <- tx.Commit()
+				}
+			}
+			defer tx.Rollback()
 		}
-		defer tx.Rollback()
-
-		// implementing transaction in queries
-		qtx := Queries.WithTx(tx)
-		err = qtx.UpdateUser(c.Context(), params)
-		if err != nil {
-			updateUserChan <- errors.New("error al actualizar usuario")
-		}
-
-		updateUserChan <- tx.Commit()
 		close(updateUserChan)
 	}()
 
-	if err := <-updateUserChan; err != nil {
+	// handling channel response in case of error
+	if chanResponseErr := <-updateUserChan; chanResponseErr != nil {
 		return c.JSON(fiber.Map{
 			"message": responseMessages["updateUserError"],
+			"error": chanResponseErr.Error(),
+		})
+	} else {
+		return c.JSON(fiber.Map{
+			"message": responseMessages["updateUserSuccess"],
 		})
 	}
-
-	return c.JSON(fiber.Map{
-		"message": responseMessages["updateUserSuccess"],
-	})
 }
 
 // DeleteUser deletes a user
