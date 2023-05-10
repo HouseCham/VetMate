@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"database/sql"
 	"errors"
 
 	"github.com/HouseCham/VetMate/auth"
@@ -90,13 +91,13 @@ func InsertNewUser(c *fiber.Ctx) error {
 
 	if err := <-insertChan; err != nil {
 		return c.JSON(fiber.Map{
-			"mensaje": responseMessages["errorInsertingUser"],
+			"message": responseMessages["errorInsertingUser"],
 			"error":   err.Error(),
 		})
 	}
 
 	return c.JSON(fiber.Map{
-		"mensaje": responseMessages["userInserted"],
+		"message": responseMessages["userInserted"],
 	})
 }
 
@@ -132,7 +133,7 @@ func GetUserById(c *fiber.Ctx) error {
 	mainInfo := <-getChan
 	if mainInfo == (db.GetUserMainInfoByIdRow{}) {
 		return c.JSON(fiber.Map{
-			"mensaje": responseMessages["userNotFound"],
+			"message": responseMessages["userNotFound"],
 		})
 	}
 
@@ -157,59 +158,74 @@ func LoginUser(c *fiber.Ctx) error {
 	if err := validations.ValidateRequest(&request, 3); err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
-			"mensaje": responseMessages["invalidRequestBody"],
+			"message": responseMessages["invalidRequestBody"],
 		})
 	}
 
 	// goroutine started to login user
 	loginChannel := make(chan LoginResponse)
 	go func() {
-
 		user, err := Queries.GetUserByEmail(c.Context(), request.Email)
+		// DB error handling
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
-			loginChannel <- LoginResponse{
-				Jwt: "",
-				Err: errorMessages["wrongCredentials"],
+			// In case email not found
+			if err == sql.ErrNoRows {
+				loginChannel <- LoginResponse{
+					Jwt: "",
+					Err: errorMessages["wrongCredentials"],
+				}
+			} else {
+				// In case of refused connection
+				loginChannel <- LoginResponse{
+					Jwt: "",
+					Err: errorMessages["serverError"],
+				}	
 			}
-		}
-
-		// Compare password
-		// if error occurs, return 401
-		if err := util.CheckPassword(request.Password, user.Password); err != nil {
-			c.Status(fiber.StatusUnauthorized)
-			loginChannel <- LoginResponse{
-				Jwt: "",
-				Err: errorMessages["wrongCredentials"],
+		} else {
+			// Compare dbPassword with request password
+			// if error occurs, return 401
+			if err := util.CheckPassword(request.Password, user.Password); err != nil {
+				c.Status(fiber.StatusUnauthorized)
+				loginChannel <- LoginResponse{
+					Jwt: "",
+					Err: errorMessages["wrongCredentials"],
+				}
+			} else {
+				// Generating jwt
+				tokenString, err := auth.GenerateJWT(user.ID, false)
+				// in case of error, returns 500 with error message
+				if err != nil {
+					c.Status(fiber.StatusInternalServerError)
+					loginChannel <- LoginResponse{
+						Jwt: "",
+						Err: errorMessages["generateJWT"],
+					}
+				} else {
+					loginChannel <- LoginResponse{
+						Jwt: tokenString,
+						Err: nil,
+					}
+				}
 			}
-		}
-
-		// Generating jwt
-		// in case of error, returns 500 with error message
-		tokenString, err := auth.GenerateJWT(user.ID, false)
-		if err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			loginChannel <- LoginResponse{
-				Jwt: "",
-				Err: errorMessages["generateJWT"],
-			}
-		}
-
-		loginChannel <- LoginResponse{
-			Jwt: tokenString,
-			Err: nil,
 		}
 		close(loginChannel)
 	}()
 
+	// handling channel response
 	response := <-loginChannel
 	if response.Err != nil {
 		return c.JSON(fiber.Map{
-			"mensaje": responseMessages["loginError"],
+			"message": responseMessages["loginError"],
 			"error":   response.Err.Error(),
 		})
 	}
-	return c.JSON(response)
+
+	// if everything is ok, return jwt
+	return c.JSON(fiber.Map{
+		"message": responseMessages["loginSuccess"],
+		"jwt": response.Jwt,
+	})
 }
 
 // UpdateUser updates a user

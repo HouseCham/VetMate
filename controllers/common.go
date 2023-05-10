@@ -28,6 +28,7 @@ var errorMessages = map[string]error{
 	"generateJWT": errors.New("error al generar token"),
 	"wrongCredentials": errors.New("email o contraseña incorrectas"),
 	"notOwner": errors.New("no eres el dueño de esta mascota"),
+	"serverError": errors.New("error en el servidor"),
 }
 
 // responseMessages is a map that contains all the response messages
