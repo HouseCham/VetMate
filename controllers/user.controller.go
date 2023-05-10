@@ -339,7 +339,7 @@ func UpdateUser(c *fiber.Ctx) error {
 	if chanResponseErr := <-updateUserChan; chanResponseErr != nil {
 		return c.JSON(fiber.Map{
 			"message": responseMessages["updateUserError"],
-			"error": chanResponseErr.Error(),
+			"error":   chanResponseErr.Error(),
 		})
 	} else {
 		return c.JSON(fiber.Map{
@@ -351,45 +351,46 @@ func UpdateUser(c *fiber.Ctx) error {
 // DeleteUser deletes a user
 // by updating the fecha_delete field to current date
 func DeleteUser(c *fiber.Ctx) error {
-	// Get the variable from the request context
-	// Variable not found or not of type string
-	userId, message, err := getIdFromRequestContext(c)
-	if err != nil {
-		c.Status(fiber.StatusInternalServerError)
-		return c.JSON(fiber.Map{
-			"message": message,
-			"error":   err.Error(),
-		})
-	}
-
 	// goroutine started to delete user
 	deleteUserChan := make(chan error)
 	go func() {
-		// Starting transaction
-		tx, err := DB.Begin()
+		// Get the variable from the request context
+		// Variable not found or not of type string
+		userId, _, err := getIdFromRequestContext(c)
+		// if error getting id from request
 		if err != nil {
-			deleteUserChan <- errorMessages["beginTX"]
+			c.Status(fiber.StatusInternalServerError)
+			deleteUserChan <- errorMessages["getIdError"]
+		} else {
+			// Starting transaction
+			tx, err := DB.Begin()
+			// if error starting transaction
+			if err != nil {
+				deleteUserChan <- errorMessages["beginTX"]
+			} else {
+				// implementing transaction in queries
+				qtx := Queries.WithTx(tx)
+				err = qtx.DeleteUser(c.Context(), userId)
+				// if error deleting user
+				if err != nil {
+					deleteUserChan <- errorMessages["deleteInfo"]
+				} else {
+					deleteUserChan <- tx.Commit()
+				}
+			}
+			defer tx.Rollback()
 		}
-		defer tx.Rollback()
-
-		// implementing transaction in queries
-		qtx := Queries.WithTx(tx)
-		err = qtx.DeleteUser(c.Context(), userId)
-		if err != nil {
-			deleteUserChan <- errorMessages["deleteInfo"]
-		}
-
-		deleteUserChan <- tx.Commit()
 		close(deleteUserChan)
 	}()
 
+	// handling channel response in case of error
 	if err := <-deleteUserChan; err != nil {
 		return c.JSON(fiber.Map{
 			"message": responseMessages["deleteUserError"],
 		})
+	} else {
+		return c.JSON(fiber.Map{
+			"message": responseMessages["deleteUserSuccess"],
+		})
 	}
-
-	return c.JSON(fiber.Map{
-		"message": responseMessages["deleteUserSuccess"],
-	})
 }

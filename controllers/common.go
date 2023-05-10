@@ -18,20 +18,25 @@ var Config *config.Config
 // errorMessages is a map that contains all the error messages
 // that are going to be sent to the client
 var errorMessages = map[string]error{
+	/* ========== Common ========== */
+	"serverError":      errors.New("error en el servidor"),
+	"getIdError":       errors.New("error al obtener id"),
 	"beginTX":          errors.New("error al iniciar transacción"),
+	"dbServerError":    errors.New("error con la base de datos"),
+	
+	/* ========== CRUD ========== */
 	"updateInfo":       errors.New("error al actualizar información"),
 	"insertInfo":       errors.New("error al insertar información"),
-	"hashPassword":     errors.New("error al encriptar contraseña"),
 	"deleteInfo":       errors.New("error al eliminar información"),
 	"getInfo":          errors.New("error al obtener información"),
-	"wrongPassword":    errors.New("contraseña incorrecta"),
+
+	/* ========== Login-Authorization ========== */
 	"generateJWT":      errors.New("error al generar token"),
+	"hashPassword":     errors.New("error al encriptar contraseña"),
+	"wrongPassword":    errors.New("contraseña incorrecta"),
 	"wrongCredentials": errors.New("email o contraseña incorrectas"),
-	"notOwner":         errors.New("no eres el dueño de esta mascota"),
-	"serverError":      errors.New("error en el servidor"),
 	"registerError":    errors.New("error al registrar usuario"),
-	"getIdError":       errors.New("error al obtener id"),
-	"dbServerError":    errors.New("error con la base de datos"),
+	"notOwner":         errors.New("no eres el dueño de esta mascota"),
 }
 
 // responseMessages is a map that contains all the response messages
