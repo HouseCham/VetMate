@@ -29,6 +29,7 @@ var errorMessages = map[string]error{
 	"wrongCredentials": errors.New("email o contraseña incorrectas"),
 	"notOwner": errors.New("no eres el dueño de esta mascota"),
 	"serverError": errors.New("error en el servidor"),
+	"registerError": errors.New("error al registrar usuario"),
 }
 
 // responseMessages is a map that contains all the response messages
@@ -45,6 +46,10 @@ var responseMessages = map[string]string{
 	"emailInUse": "El correo ya está en uso",
 	"loginSuccess": "Sesión iniciada con éxito",
 	"loginError": "Hubo un error al iniciar sesión",
+
+	/* ========== Register ========== */
+	"registerSuccess": "Usuario registrado con éxito",
+	"registerError": "Hubo un error al registrar usuario",
 	
 	/* ========== VET ========== */
 	// Insert
@@ -134,19 +139,19 @@ type IsEmailUsedChan struct {
 func checkEmailAlreadyInUse(email string, isUserTable bool, c *fiber.Ctx) (string, int, error) {
 	var emailExists int64
 	var err error
-
+	// Checking for email in use for vet or user table in database
 	if isUserTable {
 		emailExists, err = Queries.CheckUserEmailExists(c.Context(), email)
 	} else {
 		emailExists, err = Queries.CheckVetEmailExists(c.Context(), email)
 	}
-
+	// Handling server error or email already in use
 	if err != nil {
-		return "serverError", fiber.StatusInternalServerError, err
+		return responseMessages["serverError"], fiber.StatusInternalServerError, err
 	} else if emailExists > 0 {
-		return "emailInUse", fiber.StatusConflict, errors.New("email ya usado por otro usuario")
+		return responseMessages["emailInUse"], fiber.StatusConflict, errorMessages["registerError"]
 	}
-	return "Éxito", fiber.StatusOK, nil
+	return "", 0, nil
 }
 
 // getIdFromRequestContext is a function that gets the vet id

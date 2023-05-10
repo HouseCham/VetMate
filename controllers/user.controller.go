@@ -14,20 +14,10 @@ import (
 // InsertNewUser inserts a new user into the database
 func InsertNewUser(c *fiber.Ctx) error {
 	var request db.Usuario
-	var err error
 	// Parse request body from JSON to struct
 	c.BodyParser(&request)
 	// Trim input fields from request body
 	purgeInputData(&request)
-
-	// Check if email is already in use
-	if message, status, err := checkEmailAlreadyInUse(request.Email, true, c); err != nil {
-		c.Status(status)
-		return c.JSON(fiber.Map{
-			"message": responseMessages[message],
-			"error":   err.Error(),
-		})
-	}
 
 	// Validating user request parameters
 	// if it is not valid, return 400 with error message
@@ -40,65 +30,89 @@ func InsertNewUser(c *fiber.Ctx) error {
 	}
 
 	// goroutine started to insert user into database
-	insertChan := make(chan error)
+	insertChan := make(chan ErrorResponse)
 	go func() {
-		// Hash password
-		// if error occurs, return 500
-		request.Password, err = util.HashPassword(request.Password)
-		if err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			insertChan <- errors.New("error encriptando contraseña")
-		}
+		// Check if email is already in use
+		if message, status, err := checkEmailAlreadyInUse(request.Email, true, c); err != nil {
+			c.Status(status)
+			insertChan <- ErrorResponse{
+				Message: message,
+				Err:     err,
+			}
+		} else {
+			// Hash password
+			request.Password, err = util.HashPassword(request.Password)
+			// if error occurs, return 500
+			if err != nil {
+				c.Status(fiber.StatusInternalServerError)
+				insertChan <- ErrorResponse{
+					Message: responseMessages["registerError"],
+					Err:     err,
+				}
+			} else {
+				params := db.InsertNewUserParams{
+					Nombre:     request.Nombre,
+					ApellidoP:  request.ApellidoP,
+					ApellidoM:  request.ApellidoM,
+					Email:      request.Email,
+					Telefono:   request.Telefono,
+					Password:   request.Password,
+					Calle:      request.Calle,
+					Colonia:    request.Colonia,
+					Ciudad:     request.Ciudad,
+					Estado:     request.Estado,
+					Cp:         request.Cp,
+					Pais:       request.Pais,
+					NumExt:     request.NumExt,
+					NumInt:     request.NumInt,
+					Referencia: request.Referencia,
+					Token:      util.RandomStringNum(10),
+				}
+				// Starting transaction
+				tx, err := DB.Begin()
+				// if error occurs starting tx, return 500
+				if err != nil {
+					c.Status(fiber.StatusInternalServerError)
+					insertChan <- ErrorResponse{
+						Message: responseMessages["registerError"],
+						Err:     errorMessages["beginTX"],
+					}
+				} else {
+					// implementing transaction in queries
+					qtx := Queries.WithTx(tx)
+					err = qtx.InsertNewUser(c.Context(), params)
+					// if error occurs commiting tx, return 500
+					if err != nil {
+						c.Status(fiber.StatusInternalServerError)
+						insertChan <- ErrorResponse{
+							Message: responseMessages["registerError"],
+							Err:     errorMessages["insertInfo"],
+						}
+					} else {
+						insertChan <- ErrorResponse{
+							Message: responseMessages["commitTx"],
+							Err:     tx.Commit(),
+						}
+					}
 
-		params := db.InsertNewUserParams{
-			Nombre:     request.Nombre,
-			ApellidoP:  request.ApellidoP,
-			ApellidoM:  request.ApellidoM,
-			Email:      request.Email,
-			Telefono:   request.Telefono,
-			Password:   request.Password,
-			Calle:      request.Calle,
-			Colonia:    request.Colonia,
-			Ciudad:     request.Ciudad,
-			Estado:     request.Estado,
-			Cp:         request.Cp,
-			Pais:       request.Pais,
-			NumExt:     request.NumExt,
-			NumInt:     request.NumInt,
-			Referencia: request.Referencia,
-			Token:      util.RandomStringNum(10),
+				}
+				defer tx.Rollback()
+			}
 		}
-
-		// Starting transaction
-		tx, err := DB.Begin()
-		if err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			insertChan <- errorMessages["beginTX"]
-		}
-		defer tx.Rollback()
-
-		// implementing transaction in queries
-		qtx := Queries.WithTx(tx)
-		err = qtx.InsertNewUser(c.Context(), params)
-		if err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			insertChan <- errorMessages["insertInfo"]
-		}
-
-		insertChan <- tx.Commit()
 		close(insertChan)
 	}()
 
-	if err := <-insertChan; err != nil {
+	// handling response from goroutine
+	if chanResponse := <-insertChan; chanResponse.Err != nil {
 		return c.JSON(fiber.Map{
-			"message": responseMessages["errorInsertingUser"],
-			"error":   err.Error(),
+			"message": chanResponse.Message,
+			"error":   chanResponse.Err.Error(),
+		})
+	} else {
+		return c.JSON(fiber.Map{
+			"message": responseMessages["userInserted"],
 		})
 	}
-
-	return c.JSON(fiber.Map{
-		"message": responseMessages["userInserted"],
-	})
 }
 
 // GetUserByEmail gets a user by email
@@ -180,7 +194,7 @@ func LoginUser(c *fiber.Ctx) error {
 				loginChannel <- LoginResponse{
 					Jwt: "",
 					Err: errorMessages["serverError"],
-				}	
+				}
 			}
 		} else {
 			// Compare dbPassword with request password
@@ -224,7 +238,7 @@ func LoginUser(c *fiber.Ctx) error {
 	// if everything is ok, return jwt
 	return c.JSON(fiber.Map{
 		"message": responseMessages["loginSuccess"],
-		"jwt": response.Jwt,
+		"jwt":     response.Jwt,
 	})
 }
 
