@@ -15,12 +15,9 @@ import (
 // by a user
 func InsertNewPetByUser(c *fiber.Ctx) error {
 	var request db.Mascota
-
 	// Parse request body from JSON to struct
 	c.BodyParser(&request)
-
 	purgeInputData(&request)
-
 	// Validating user request parameters
 	// if it is not valid, return 400 with error message
 	if err := validations.ValidateRequest(&request, 1); err != nil {
