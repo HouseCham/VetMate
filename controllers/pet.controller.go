@@ -26,61 +26,62 @@ func InsertNewPetByUser(c *fiber.Ctx) error {
 			"message": responseMessages["invalidRequestBody"],
 			"error":   err.Error(),
 		})
+	} else {
+		// Starting go routine
+		newPetChan := make(chan error)
+		go func() {
+			// Getting the ownerId from the request context
+			ownerId, message, err := getIdFromRequestContext(c)
+			// if error getting the ownerId from request, return 500 with error message
+			if err != nil {
+				c.Status(fiber.StatusInternalServerError)
+				newPetChan <- errors.New(message)
+			} else {
+				// mapping request into params
+				params := db.InsertNewPetParams{
+					PropietarioID:   sql.NullInt32{Int32: ownerId, Valid: true},
+					RazaID:          request.RazaID,
+					Descripcion:     request.Descripcion,
+					Nombre:          request.Nombre,
+					Sexo:            request.Sexo,
+					Token:           util.RandomStringNum(10),
+					ImgUrl:          request.ImgUrl,
+					FechaNacimiento: request.FechaNacimiento,
+				}
+				// Starting transaction
+				tx, err := DB.Begin()
+				// if error starting transaction, return 500 with error message
+				if err != nil {
+					c.Status(fiber.StatusInternalServerError)
+					newPetChan <- errorMessages["beginTX"]
+				} else {
+					// implementing transaction in queries
+					qtx := Queries.WithTx(tx)
+					err = qtx.InsertNewPet(c.Context(), params)
+					// if error inserting new pet
+					if err != nil {
+						newPetChan <- err
+					} else {
+						newPetChan <- tx.Commit()
+					}
+				}
+				defer tx.Rollback()
+			}
+			close(newPetChan)
+		}()
+		// Handling go routine response
+		if err := <-newPetChan; err != nil {
+			return c.JSON(fiber.Map{
+				"message": responseMessages["insertPetError"],
+				"error":   err.Error(),
+			})
+		} else {
+			// Everything went well
+			return c.JSON(fiber.Map{
+				"message": responseMessages["insertPetSuccess"],
+			})
+		}
 	}
-
-	// Starting transaction
-	newPetChan := make(chan error)
-	go func() {
-		// Getting the ownerId from the request context
-		ownerId, message, err := getIdFromRequestContext(c)
-		if err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			newPetChan <- errors.New(message)
-		}
-
-		params := db.InsertNewPetParams{
-			PropietarioID:   sql.NullInt32{Int32: ownerId, Valid: true},
-			RazaID:          request.RazaID,
-			Descripcion:     request.Descripcion,
-			Nombre:          request.Nombre,
-			Sexo:            request.Sexo,
-			Token:           util.RandomStringNum(10),
-			ImgUrl:          request.ImgUrl,
-			FechaNacimiento: request.FechaNacimiento,
-		}
-
-		// Starting transaction
-		tx, err := DB.Begin()
-		if err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			newPetChan <- errorMessages["beginTX"]
-		}
-		defer tx.Rollback()
-
-		// implementing transaction in queries
-		qtx := Queries.WithTx(tx)
-		err = qtx.InsertNewPet(c.Context(), params)
-		if err != nil {
-			newPetChan <- err
-		}
-
-		newPetChan <- tx.Commit()
-
-		close(newPetChan)
-	}()
-
-	// Handling go routine response
-	if err := <-newPetChan; err != nil {
-		return c.JSON(fiber.Map{
-			"message": responseMessages["insertPetError"],
-			"error":   err.Error(),
-		})
-	}
-
-	// Everything went well
-	return c.JSON(fiber.Map{
-		"message": responseMessages["insertPetSuccess"],
-	})
 }
 
 // InsertNewPet inserts a new pet into the database
@@ -105,79 +106,79 @@ func DeletePet(c *fiber.Ctx) error {
 	go func() {
 		// Getting the ownerId from the request context
 		requestOwnerId, message, err := getIdFromRequestContext(c)
+		// if error getting the ownerId
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
 			deletePetChan <- ErrorResponse{
 				Message: message,
 				Err:     err,
 			}
-			close(deletePetChan)
-		}
-
-		// Getting the petId
-		petId, err := getPetIdFromUri(c)
-		if err != nil {
-			c.Status(fiber.StatusBadRequest)
-			deletePetChan <- ErrorResponse{
-				Message: responseMessages["invalidPetId"],
-				Err:     err,
+		} else {
+			// Getting the petId
+			petId, err := getPetIdFromUri(c)
+			// if error getting the petId form uri
+			if err != nil {
+				c.Status(fiber.StatusBadRequest)
+				deletePetChan <- ErrorResponse{
+					Message: responseMessages["invalidPetId"],
+					Err:     err,
+				}
+			} else {
+				// Checking if the user is the owner of the pet
+				// return server error or not authorized if error
+				if isOwner, err := isUserOwner(requestOwnerId, petId, c); err != nil {
+					c.Status(fiber.StatusInternalServerError)
+					deletePetChan <- ErrorResponse{
+						Message: responseMessages["serverError"],
+						Err:     err,
+					}
+				} else if !isOwner {
+					c.Status(fiber.StatusUnauthorized)
+					deletePetChan <- ErrorResponse{
+						Message: responseMessages["notAuthorized"],
+						Err:     errorMessages["notOwner"],
+					}
+				} else {
+					// Starting transaction
+					tx, err := DB.Begin()
+					// if error starting tx, return 500
+					if err != nil {
+						c.Status(fiber.StatusInternalServerError)
+						deletePetChan <- ErrorResponse{
+							Message: responseMessages["serverError"],
+							Err:     errorMessages["beginTX"],
+						}
+					} else {
+						// implementing transaction in queries
+						qtx := Queries.WithTx(tx)
+						err = qtx.DeletePet(c.Context(), petId)
+						// if error deleting pet, return 500
+						if err != nil {
+							c.Status(fiber.StatusInternalServerError)
+							deletePetChan <- ErrorResponse{
+								Message: responseMessages["deletePetError"],
+								Err:     err,
+							}
+						} else {
+							// Commiting transaction
+							// if there is an error, return 500
+							if err := tx.Commit(); err != nil {
+								c.Status(fiber.StatusInternalServerError)
+								deletePetChan <- ErrorResponse{
+									Message: responseMessages["serverError"],
+									Err:     errorMessages["commitTX"],
+								}
+							} else {
+								deletePetChan <- ErrorResponse{
+									Message: "",
+									Err:     nil,
+								}
+							}
+						}
+					}
+					defer tx.Rollback()
+				}
 			}
-			close(deletePetChan)
-		}
-
-		// Checking if the user is the owner of the pet
-		if isOwner, err := isUserOwner(requestOwnerId, petId, c); err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			deletePetChan <- ErrorResponse{
-				Message: responseMessages["serverError"],
-				Err:     err,
-			}
-		} else if !isOwner {
-			c.Status(fiber.StatusUnauthorized)
-			deletePetChan <- ErrorResponse{
-				Message: responseMessages["notAuthorized"],
-				Err:     errorMessages["notOwner"],
-			}
-			close(deletePetChan)
-		}
-
-		// Starting transaction
-		tx, err := DB.Begin()
-		if err != nil {
-			deletePetChan <- ErrorResponse{
-				Message: responseMessages["serverError"],
-				Err:     errorMessages["beginTX"],
-			}
-			close(deletePetChan)
-		}
-		defer tx.Rollback()
-
-		// implementing transaction in queries
-		qtx := Queries.WithTx(tx)
-		err = qtx.DeletePet(c.Context(), petId)
-		if err != nil {
-			deletePetChan <- ErrorResponse{
-				Message: responseMessages["deletePetError"],
-				Err:     err,
-			}
-			close(deletePetChan)
-		}
-
-		// Commiting transaction
-		// if there is an error, return 500
-		if err := tx.Commit(); err != nil {
-			deletePetChan <- ErrorResponse{
-				Message: responseMessages["serverError"],
-				Err:     errorMessages["commitTX"],
-			}
-			close(deletePetChan)
-		}
-
-		// Everything went well
-		// closing channel
-		deletePetChan <- ErrorResponse{
-			Message: "",
-			Err:     nil,
 		}
 		close(deletePetChan)
 	}()
@@ -188,12 +189,12 @@ func DeletePet(c *fiber.Ctx) error {
 			"message": responseMessages["deletePetError"],
 			"error":   serverResponse.Err.Error(),
 		})
+	} else {
+		// Everything went well
+		return c.JSON(fiber.Map{
+			"message": responseMessages["deletePetSuccess"],
+		})
 	}
-
-	// Everything went well
-	return c.JSON(fiber.Map{
-		"message": responseMessages["deletePetSuccess"],
-	})
 }
 
 // UpdatePet updates a pet in the database
@@ -207,119 +208,121 @@ func UpdatePet(c *fiber.Ctx) error {
 
 	// Validating user request parameters
 	// if it is not valid, return 400 with error message
+	//* if bad request, return 400 with error message
 	if err := validations.ValidateRequest(&request, 2); err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
 			"message": responseMessages["invalidRequestBody"],
 			"error":   err.Error(),
 		})
+	} else {
+		// Starting goroutine
+		updatePetChan := make(chan ErrorResponse)
+		go func() {
+			// Getting the ownerId from the request context
+			requestOwnerId, message, err := getIdFromRequestContext(c)
+			//* if error getting the ownerId
+			if err != nil {
+				c.Status(fiber.StatusInternalServerError)
+				updatePetChan <- ErrorResponse{
+					Message: message,
+					Err:     err,
+				}
+				close(updatePetChan)
+			} else {
+				// Getting the petId
+				petId, err := getPetIdFromUri(c)
+				//* if error getting the petId form uri
+				if err != nil {
+					c.Status(fiber.StatusBadRequest)
+					updatePetChan <- ErrorResponse{
+						Message: message,
+						Err:     err,
+					}
+					close(updatePetChan)
+				} else {
+					//* Checking if the user is the owner of the pet
+					if isOwner, err := isUserOwner(requestOwnerId, petId, c); err != nil {
+						c.Status(fiber.StatusInternalServerError)
+						updatePetChan <- ErrorResponse{
+							Message: responseMessages["serverError"],
+							Err:     err,
+						}
+						close(updatePetChan)
+					} else if !isOwner {
+						c.Status(fiber.StatusUnauthorized)
+						updatePetChan <- ErrorResponse{
+							Message: responseMessages["unauthorized"],
+							Err:     err,
+						}
+						close(updatePetChan)
+					} else {
+						params := db.UpdatePetParams{
+							RazaID:          request.RazaID,
+							Descripcion:     request.Descripcion,
+							Nombre:          request.Nombre,
+							Sexo:            request.Sexo,
+							ImgUrl:          request.ImgUrl,
+							FechaNacimiento: request.FechaNacimiento,
+							ID:              petId,
+						}
+						// Starting transaction
+						tx, err := DB.Begin()
+						//* if error starting tx, return 500
+						if err != nil {
+							updatePetChan <- ErrorResponse{
+								Message: responseMessages["serverError"],
+								Err:     errorMessages["beginTx"],
+							}
+							close(updatePetChan)
+						} else {
+							// implementing transaction in queries
+							qtx := Queries.WithTx(tx)
+							err = qtx.UpdatePet(c.Context(), params)
+							//* if error updating pet, return 500
+							if err != nil {
+								updatePetChan <- ErrorResponse{
+									Message: responseMessages["updatePetError"],
+									Err:     err,
+								}
+								close(updatePetChan)
+							} else {
+								// Commiting transaction
+								//* if there is an error, return 500
+								if err := tx.Commit(); err != nil {
+									updatePetChan <- ErrorResponse{
+										Message: responseMessages["serverError"],
+										Err:     errorMessages["commitTx"],
+									}
+									close(updatePetChan)
+								} else {
+									updatePetChan <- ErrorResponse{
+										Message: "",
+										Err:     nil,
+									}
+								}
+							}
+						}
+						defer tx.Rollback()
+					}
+				}
+			}
+			close(updatePetChan)
+		}()
+
+		// get the response from the channel
+		if serverResponse := <-updatePetChan; serverResponse.Err != nil {
+			return c.JSON(fiber.Map{
+				"message": serverResponse.Message,
+				"error":   serverResponse.Err.Error(),
+			})
+		} else {
+			// Everything went well
+			return c.JSON(fiber.Map{
+				"message": responseMessages["updatePetSuccess"],
+			})
+		}
 	}
-
-	// Starting goroutine
-	updatePetChan := make(chan ErrorResponse)
-	go func() {
-		// Getting the ownerId from the request context
-		requestOwnerId, message, err := getIdFromRequestContext(c)
-		if err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			updatePetChan <- ErrorResponse{
-				Message: message,
-				Err:     err,
-			}
-			close(updatePetChan)
-		}
-
-		// Getting the petId
-		petId, err := getPetIdFromUri(c)
-		if err != nil {
-			c.Status(fiber.StatusBadRequest)
-			updatePetChan <- ErrorResponse{
-				Message: message,
-				Err:     err,
-			}
-			close(updatePetChan)
-		}
-
-		// Checking if the user is the owner of the pet
-		if isOwner, err := isUserOwner(requestOwnerId, petId, c); err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			updatePetChan <- ErrorResponse{
-				Message: responseMessages["serverError"],
-				Err:     err,
-			}
-			close(updatePetChan)
-		} else if !isOwner {
-			c.Status(fiber.StatusUnauthorized)
-			updatePetChan <- ErrorResponse{
-				Message: responseMessages["unauthorized"],
-				Err:     err,
-			}
-			close(updatePetChan)
-		}
-
-		params := db.UpdatePetParams{
-			RazaID:          request.RazaID,
-			Descripcion:     request.Descripcion,
-			Nombre:          request.Nombre,
-			Sexo:            request.Sexo,
-			ImgUrl:          request.ImgUrl,
-			FechaNacimiento: request.FechaNacimiento,
-			ID:              petId,
-		}
-
-		// Starting transaction
-		tx, err := DB.Begin()
-		if err != nil {
-			updatePetChan <- ErrorResponse{
-				Message: responseMessages["serverError"],
-				Err:     errorMessages["beginTx"],
-			}
-			close(updatePetChan)
-		}
-		defer tx.Rollback()
-
-		// implementing transaction in queries
-		qtx := Queries.WithTx(tx)
-		err = qtx.UpdatePet(c.Context(), params)
-		if err != nil {
-			updatePetChan <- ErrorResponse{
-				Message: responseMessages["updatePetError"],
-				Err:     err,
-			}
-			close(updatePetChan)
-		}
-
-		// Commiting transaction
-		// if there is an error, return 500
-		if err := tx.Commit(); err != nil {
-			updatePetChan <- ErrorResponse{
-				Message: responseMessages["serverError"],
-				Err:     errorMessages["commitTx"],
-			}
-			close(updatePetChan)
-		}
-
-		// Everything went well
-		// closing channel
-		updatePetChan <- ErrorResponse{
-			Message: "",
-			Err:     nil,
-		}
-		close(updatePetChan)
-	}()
-
-	// get the response from the channel
-	if serverResponse := <-updatePetChan; serverResponse.Err != nil {
-		return c.JSON(fiber.Map{
-			"message": serverResponse.Message,
-			"error":   serverResponse.Err.Error(),
-		})
-	}
-
-	// Everything went well
-	return c.JSON(fiber.Map{
-		"message": responseMessages["updatePetSuccess"],
-	})
 }
 
 // GetPet gets a pet from the database by a user
@@ -334,61 +337,54 @@ func GetPet(c *fiber.Ctx) error {
 			getPetChan <- HttpGetResponse{
 				Message: message,
 				Err:     err,
-				Object:     db.GetPetMainInfoRow{},
+				Object:  db.GetPetMainInfoRow{},
 			}
-			close(getPetChan)
-		}
-
-		// Getting the petId
-		petId, err := getPetIdFromUri(c)
-		if err != nil {
-			c.Status(fiber.StatusBadRequest)
-			getPetChan <- HttpGetResponse{
-				Message: responseMessages["invalidRequestBody"],
-				Err:     nil,
-				Object:     db.GetPetMainInfoRow{},
+		} else {
+			// Getting the petId
+			petId, err := getPetIdFromUri(c)
+			if err != nil {
+				c.Status(fiber.StatusBadRequest)
+				getPetChan <- HttpGetResponse{
+					Message: responseMessages["invalidRequestBody"],
+					Err:     nil,
+					Object:  db.GetPetMainInfoRow{},
+				}
+			} else {
+				// Checking if the user is the owner of the pet
+				if isOwner, err := isUserOwner(requestOwnerId, petId, c); err != nil {
+					c.Status(fiber.StatusInternalServerError)
+					getPetChan <- HttpGetResponse{
+						Message: responseMessages["serverError"],
+						Err:     err,
+						Object:  db.GetPetMainInfoRow{},
+					}
+				} else if !isOwner {
+					c.Status(fiber.StatusUnauthorized)
+					getPetChan <- HttpGetResponse{
+						Message: responseMessages["unauthorized"],
+						Err:     nil,
+						Object:  db.GetPetMainInfoRow{},
+					}
+				} else {
+					// then, we need to get the vet info from the database
+					// if error occurs, return 404
+					mainInfo, err := Queries.GetPetMainInfo(c.Context(), petId)
+					if err != nil {
+						c.Status(fiber.StatusNotFound)
+						getPetChan <- HttpGetResponse{
+							Message: responseMessages["petNotFound"],
+							Err:     err,
+							Object:  db.GetPetMainInfoRow{},
+						}
+					} else {
+						getPetChan <- HttpGetResponse{
+							Message: "",
+							Err:     nil,
+							Object:  mainInfo,
+						}
+					}
+				}
 			}
-			close(getPetChan)
-		}
-
-		// Checking if the user is the owner of the pet
-		if isOwner, err := isUserOwner(requestOwnerId, petId, c); err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			getPetChan <- HttpGetResponse{
-				Message: responseMessages["serverError"],
-				Err:     err,
-				Object:     db.GetPetMainInfoRow{},
-			}
-			close(getPetChan)
-		} else if !isOwner {
-			c.Status(fiber.StatusUnauthorized)
-			getPetChan <- HttpGetResponse{
-				Message: responseMessages["unauthorized"],
-				Err:     nil,
-				Object:     db.GetPetMainInfoRow{},
-			}
-			close(getPetChan)
-		}
-
-		// then, we need to get the vet info from the database
-		// if error occurs, return 404
-		mainInfo, err := Queries.GetPetMainInfo(c.Context(), petId)
-		if err != nil {
-			c.Status(fiber.StatusNotFound)
-			getPetChan <- HttpGetResponse{
-				Message: responseMessages["petNotFound"],
-				Err:     err,
-				Object:     db.GetPetMainInfoRow{},
-			}
-			close(getPetChan)
-		}
-
-		// Everything went well
-		// closing channel
-		getPetChan <- HttpGetResponse{
-			Message: "",
-			Err:     nil,
-			Object:     mainInfo,
 		}
 		close(getPetChan)
 	}()
@@ -400,10 +396,9 @@ func GetPet(c *fiber.Ctx) error {
 			"message": serverResponse.Message,
 			"error":   serverResponse.Err.Error(),
 		})
+	} else {
+		return c.JSON(serverResponse.Object)
 	}
-
-	// Everything went well
-	return c.JSON(serverResponse.Object)
 }
 
 // NewWarriorInValhalla updates the 'fecha_muerte' column of a pet in the database to the current date. This is done when a pet dies and goes to Valhalla. This function can only be done by the owner of the pet
@@ -419,78 +414,70 @@ func NewWarriorInValhalla(c *fiber.Ctx) error {
 				Message: message,
 				Err:     err,
 			}
-			close(newWarriorChan)
-		}
-
-		// Getting the petId
-		petId, err := getPetIdFromUri(c)
-		if err != nil {
-			c.Status(fiber.StatusBadRequest)
-			newWarriorChan <- ErrorResponse{
-				Message: responseMessages["invalidRequestBody"],
-				Err:     nil,
+		} else {
+			// Getting the petId
+			petId, err := getPetIdFromUri(c)
+			if err != nil {
+				c.Status(fiber.StatusBadRequest)
+				newWarriorChan <- ErrorResponse{
+					Message: responseMessages["invalidRequestBody"],
+					Err:     nil,
+				}
+			} else {
+				// Checking if the user is the owner of the pet
+				if isOwner, err := isUserOwner(requestOwnerId, petId, c); err != nil {
+					c.Status(fiber.StatusInternalServerError)
+					newWarriorChan <- ErrorResponse{
+						Message: responseMessages["serverError"],
+						Err:     err,
+					}
+				} else if !isOwner {
+					c.Status(fiber.StatusUnauthorized)
+					newWarriorChan <- ErrorResponse{
+						Message: responseMessages["unauthorized"],
+						Err:     nil,
+					}
+				} else {
+					// Starting transaction
+					tx, err := DB.Begin()
+					//? if error starting tx, return 500
+					if err != nil {
+						c.Status(fiber.StatusInternalServerError)
+						newWarriorChan <- ErrorResponse{
+							Message: responseMessages["serverError"],
+							Err:     errorMessages["beginTx"],
+						}
+					} else {
+						// implementing transaction in queries
+						qtx := Queries.WithTx(tx)
+						err = qtx.NewPetInValhalla(c.Context(), petId)
+						//? if error updating pet, return 500
+						if err != nil {
+							c.Status(fiber.StatusInternalServerError)
+							newWarriorChan <- ErrorResponse{
+								Message: responseMessages["petPassAwayError"],
+								Err:     err,
+							}
+						} else {
+							// Commiting transaction
+							//? if there is an error commiting tx, return 500
+							if err := tx.Commit(); err != nil {
+								c.Status(fiber.StatusInternalServerError)
+								newWarriorChan <- ErrorResponse{
+									Message: responseMessages["serverError"],
+									Err:     errorMessages["commitTx"],
+								}
+							} else {
+								newWarriorChan <- ErrorResponse{
+									Message: "",
+									Err:     nil,
+								}
+							}
+						}
+					}
+					defer tx.Rollback()
+				}
 			}
-			close(newWarriorChan)
-		}
-
-		// Checking if the user is the owner of the pet
-		if isOwner, err := isUserOwner(requestOwnerId, petId, c); err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			newWarriorChan <- ErrorResponse{
-				Message: responseMessages["serverError"],
-				Err:     err,
-			}
-			close(newWarriorChan)
-
-		} else if !isOwner {
-			c.Status(fiber.StatusUnauthorized)
-			newWarriorChan <- ErrorResponse{
-				Message: responseMessages["unauthorized"],
-				Err:     nil,
-			}
-			close(newWarriorChan)
-		}
-
-		// Starting transaction
-		tx, err := DB.Begin()
-		if err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			newWarriorChan <- ErrorResponse{
-				Message: responseMessages["serverError"],
-				Err:     errorMessages["beginTx"],
-			}
-			close(newWarriorChan)
-		}
-		defer tx.Rollback()
-
-		// implementing transaction in queries
-		qtx := Queries.WithTx(tx)
-		err = qtx.NewPetInValhalla(c.Context(), petId)
-		if err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			newWarriorChan <- ErrorResponse{
-				Message: responseMessages["petPassAwayError"],
-				Err:     err,
-			}
-			close(newWarriorChan)
-		}
-
-		// Commiting transaction
-		// if there is an error, return 500
-		if err := tx.Commit(); err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			newWarriorChan <- ErrorResponse{
-				Message: responseMessages["serverError"],
-				Err:     errorMessages["commitTx"],
-			}
-			close(newWarriorChan)
-		}
-
-		// Everything went well
-		// closing channel
-		newWarriorChan <- ErrorResponse{
-			Message: "",
-			Err:     nil,
 		}
 		close(newWarriorChan)
 	}()
@@ -501,12 +488,11 @@ func NewWarriorInValhalla(c *fiber.Ctx) error {
 			"message": serverResponse.Message,
 			"error":   serverResponse.Err.Error(),
 		})
+	} else {
+		return c.JSON(fiber.Map{
+			"message": responseMessages["petPassAwaySuccess"],
+		})
 	}
-
-	// Everything went well
-	return c.JSON(fiber.Map{
-		"message": responseMessages["petPassAwaySuccess"],
-	})
 }
 
 //? ================ functions used by controllers ================ ?//
