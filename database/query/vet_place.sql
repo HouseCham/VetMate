@@ -1,18 +1,18 @@
 -- name: CheckVetPlaceNameExists :one
 SELECT COUNT(*)
-FROM negocios
-WHERE nombre_negocio = ?;
+FROM sucursales
+WHERE nombre_sucursal = ?;
 
 -- name: InsertNewVetPlace :exec
-INSERT INTO negocios (nombre_negocio, token)
+INSERT INTO sucursales (nombre_sucursal, token)
 VALUES (?, ?);
 
 -- name: UpdateVetPlace :exec
-UPDATE negocios
-SET nombre_negocio = ?
+UPDATE sucursales
+SET nombre_sucursal = ?
 WHERE id = ?;
 
 -- name: DeleteVetPlace :exec
-UPDATE negocios
+UPDATE sucursales
 SET fecha_delete = DATE_SUB(NOW(), INTERVAL 6 HOUR)
 WHERE id = ?;

@@ -6,11 +6,12 @@ package db
 
 import (
 	"database/sql"
+	"time"
 )
 
-type DireccionLocale struct {
+type DireccionSucursale struct {
 	ID            int32          `json:"id"`
-	IDNegocio     sql.NullInt32  `json:"id_negocio"`
+	IDSucursal    sql.NullInt32  `json:"id_sucursal"`
 	Calle         string         `json:"calle"`
 	Cp            string         `json:"cp"`
 	NumExt        string         `json:"num_ext"`
@@ -51,19 +52,19 @@ type Mascota struct {
 	FechaDelete                 sql.NullTime   `json:"fecha_delete"`
 }
 
-type Negocio struct {
-	ID            int32        `json:"id"`
-	NombreNegocio string       `json:"nombre_negocio"`
-	Token         string       `json:"token"`
-	FechaRegistro sql.NullTime `json:"fecha_registro"`
-	FechaUpdate   sql.NullTime `json:"fecha_update"`
-	FechaDelete   sql.NullTime `json:"fecha_delete"`
-}
-
 type Raza struct {
 	ID        int32          `json:"id"`
 	FamiliaID sql.NullInt32  `json:"familia_id"`
 	Nombre    sql.NullString `json:"nombre"`
+}
+
+type Sucursale struct {
+	ID             int32        `json:"id"`
+	NombreSucursal string       `json:"nombre_sucursal"`
+	Token          string       `json:"token"`
+	FechaRegistro  sql.NullTime `json:"fecha_registro"`
+	FechaUpdate    sql.NullTime `json:"fecha_update"`
+	FechaDelete    sql.NullTime `json:"fecha_delete"`
 }
 
 type Usuario struct {
@@ -91,9 +92,29 @@ type Usuario struct {
 	FechaDelete   sql.NullTime   `json:"fecha_delete"`
 }
 
+type Vacuna struct {
+	ID         int32         `json:"id"`
+	VetID      sql.NullInt32 `json:"vet_id"`
+	TipoVacuna string        `json:"tipo_vacuna"`
+}
+
+type Vacunacione struct {
+	ID                   int32         `json:"id"`
+	MascotaID            sql.NullInt32 `json:"mascota_id"`
+	TipoVacunaID         sql.NullInt32 `json:"tipo_vacuna_id"`
+	VetID                sql.NullInt32 `json:"vet_id"`
+	DireccionSucursalID  sql.NullInt32 `json:"direccion_sucursal_id"`
+	FechaAplicacion      sql.NullTime  `json:"fecha_aplicacion"`
+	Laboratorio          string        `json:"laboratorio"`
+	LoteVacuna           string        `json:"lote_vacuna"`
+	Peso                 string        `json:"peso"`
+	VacunaFechaCaducidad time.Time     `json:"vacuna_fecha_caducidad"`
+	ProxFechaVacunacion  time.Time     `json:"prox_fecha_vacunacion"`
+}
+
 type Veterinario struct {
 	ID            int32          `json:"id"`
-	VeterinariaID sql.NullInt32  `json:"veterinaria_id"`
+	SucursalID    sql.NullInt32  `json:"sucursal_id"`
 	Token         string         `json:"token"`
 	Nombre        string         `json:"nombre"`
 	ApellidoP     string         `json:"apellido_p"`

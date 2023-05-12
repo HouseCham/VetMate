@@ -11,19 +11,19 @@ import (
 
 const checkVetPlaceNameExists = `-- name: CheckVetPlaceNameExists :one
 SELECT COUNT(*)
-FROM negocios
-WHERE nombre_negocio = ?
+FROM sucursales
+WHERE nombre_sucursal = ?
 `
 
-func (q *Queries) CheckVetPlaceNameExists(ctx context.Context, nombreNegocio string) (int64, error) {
-	row := q.db.QueryRowContext(ctx, checkVetPlaceNameExists, nombreNegocio)
+func (q *Queries) CheckVetPlaceNameExists(ctx context.Context, nombreSucursal string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, checkVetPlaceNameExists, nombreSucursal)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
 }
 
 const deleteVetPlace = `-- name: DeleteVetPlace :exec
-UPDATE negocios
+UPDATE sucursales
 SET fecha_delete = DATE_SUB(NOW(), INTERVAL 6 HOUR)
 WHERE id = ?
 `
@@ -34,32 +34,32 @@ func (q *Queries) DeleteVetPlace(ctx context.Context, id int32) error {
 }
 
 const insertNewVetPlace = `-- name: InsertNewVetPlace :exec
-INSERT INTO negocios (nombre_negocio, token)
+INSERT INTO sucursales (nombre_sucursal, token)
 VALUES (?, ?)
 `
 
 type InsertNewVetPlaceParams struct {
-	NombreNegocio string `json:"nombre_negocio"`
-	Token         string `json:"token"`
+	NombreSucursal string `json:"nombre_sucursal"`
+	Token          string `json:"token"`
 }
 
 func (q *Queries) InsertNewVetPlace(ctx context.Context, arg InsertNewVetPlaceParams) error {
-	_, err := q.db.ExecContext(ctx, insertNewVetPlace, arg.NombreNegocio, arg.Token)
+	_, err := q.db.ExecContext(ctx, insertNewVetPlace, arg.NombreSucursal, arg.Token)
 	return err
 }
 
 const updateVetPlace = `-- name: UpdateVetPlace :exec
-UPDATE negocios
-SET nombre_negocio = ?
+UPDATE sucursales
+SET nombre_sucursal = ?
 WHERE id = ?
 `
 
 type UpdateVetPlaceParams struct {
-	NombreNegocio string `json:"nombre_negocio"`
-	ID            int32  `json:"id"`
+	NombreSucursal string `json:"nombre_sucursal"`
+	ID             int32  `json:"id"`
 }
 
 func (q *Queries) UpdateVetPlace(ctx context.Context, arg UpdateVetPlaceParams) error {
-	_, err := q.db.ExecContext(ctx, updateVetPlace, arg.NombreNegocio, arg.ID)
+	_, err := q.db.ExecContext(ctx, updateVetPlace, arg.NombreSucursal, arg.ID)
 	return err
 }

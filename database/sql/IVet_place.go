@@ -2,12 +2,12 @@ package db
 
 import "strings"
 
-func (vetPlace *Negocio) Trim() {
-	vetPlace.NombreNegocio = strings.TrimSpace(vetPlace.NombreNegocio)
+func (vetPlace *Sucursale) Trim() {
+	vetPlace.NombreSucursal = strings.TrimSpace(vetPlace.NombreSucursal)
 	vetPlace.Token = strings.TrimSpace(vetPlace.Token)
 }
 
-func (vetPlace *Negocio) DeleteBlankFields() {
-	vetPlace.NombreNegocio = strings.ReplaceAll(vetPlace.NombreNegocio, " ", "")
+func (vetPlace *Sucursale) DeleteBlankFields() {
+	vetPlace.NombreSucursal = strings.ReplaceAll(vetPlace.NombreSucursal, " ", "")
 	vetPlace.Token = strings.ReplaceAll(vetPlace.Token, " ", "")
 }

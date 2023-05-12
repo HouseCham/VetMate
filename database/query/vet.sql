@@ -5,7 +5,7 @@ WHERE id = ? AND fecha_delete IS NULL;
 
 -- name: InsertNewVet :exec
 INSERT INTO veterinarios (
-    veterinaria_id,
+    sucursal_id,
     token,
     nombre,
     apellido_p,
