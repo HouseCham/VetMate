@@ -1,6 +1,6 @@
 CREATE TABLE `veterinarios` (
   `id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  `veterinaria_id` INT UNSIGNED,
+  `sucursal_id` INT UNSIGNED,
   `token` char(10) NOT NULL,
   `nombre` varchar(100) NOT NULL,
   `apellido_p` varchar(50) NOT NULL,
@@ -17,9 +17,9 @@ CREATE TABLE `veterinarios` (
   -- NOW() -> DATE_SUB(NOW(), INTERVAL 6 HOUR)
 );
 
-CREATE TABLE `negocios` (
+CREATE TABLE `sucursales` (
   `id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  `nombre_negocio` varchar(150) NOT NULL,
+  `nombre_sucursal` varchar(150) NOT NULL,
   `token` char(10) NOT NULL,
 
   `fecha_registro` timestamp DEFAULT (NOW()),
@@ -27,9 +27,9 @@ CREATE TABLE `negocios` (
   `fecha_delete` timestamp
 );
 
-CREATE TABLE `direccion_locales` (
+CREATE TABLE `direccion_sucursales` (
   `id` INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  `id_negocio` INT UNSIGNED,
+  `id_sucursal` INT UNSIGNED,
   `calle` varchar(100) NOT NULL,
   `cp` varchar(10) NOT NULL,
   `num_ext` varchar(10) NOT NULL,
@@ -49,10 +49,10 @@ CREATE INDEX `nombre_completo_vet` ON `veterinarios` (`nombre`, `apellido_p`, `a
 
 CREATE UNIQUE INDEX `veterinarios_index_1` ON `veterinarios` (`email`);
 
-CREATE UNIQUE INDEX `negocios_index_2` ON `negocios` (`nombre_negocio`);
+CREATE UNIQUE INDEX `sucursales_index_2` ON `sucursales` (`nombre_sucursal`);
 
-CREATE INDEX `direccion_completa` ON `direccion_locales` (`calle`, `num_ext`, `colonia`);
+CREATE INDEX `direccion_completa` ON `direccion_sucursales` (`calle`, `num_ext`, `colonia`);
 
-ALTER TABLE `veterinarios` ADD FOREIGN KEY (`veterinaria_id`) REFERENCES `negocios` (`id`);
+ALTER TABLE `veterinarios` ADD FOREIGN KEY (`sucursal_id`) REFERENCES `sucursales` (`id`);
 
-ALTER TABLE `direccion_locales` ADD FOREIGN KEY (`id_negocio`) REFERENCES `negocios` (`id`);
+ALTER TABLE `direccion_sucursales` ADD FOREIGN KEY (`id_sucursal`) REFERENCES `sucursales` (`id`);

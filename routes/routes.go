@@ -28,5 +28,5 @@ func SetAllRoutes(app *fiber.App) {
 	app.Put("/api/v1/pet/update/:petId", middleware.JwtMiddleware(false), controllers.UpdatePet)
 
 	// vaccine Routes
-	app.Post("/api/v1/vaccine/insert", middleware.JwtMiddleware(true), controllers.InsertNewVaccine)
+	app.Post("/api/v1/vaccine/insert", middleware.JwtMiddleware(true), controllers.InsertNewVaccineRecord)
 }
