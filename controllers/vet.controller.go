@@ -115,62 +115,59 @@ func InsertNewVet(c *fiber.Ctx) error {
 // GetVetById is a function that gets the vet info
 // by the vet id from the fiber context
 func GetVetById(c *fiber.Ctx) error {
-	// Get the variable from the request context
-	// Variable not found or not of type string
-	vetId, message, err := getIdFromRequestContext(c)
-	if err != nil {
-		c.Status(fiber.StatusInternalServerError)
-		return c.JSON(fiber.Map{
-			"message": message,
-			"error":   err.Error(),
-		})
-	}
-
-	getVetChan := make(chan db.GetVetMainInfoByIdRow)
+	getVetChan := make(chan HttpGetResponse)
 	go func() {
-		// then, we need to get the vet info from the database
-		// if error occurs, return 404
-		mainInfo, err := Queries.GetVetMainInfoById(c.Context(), vetId)
+		// Get the variable from the request context
+		// Variable not found or not of type string
+		vetId, message, err := getIdFromRequestContext(c)
+		//? if error getting id from request context, return 500
 		if err != nil {
-			c.Status(fiber.StatusNotFound)
-			getVetChan <- db.GetVetMainInfoByIdRow{}
+			c.Status(fiber.StatusInternalServerError)
+			getVetChan <- HttpGetResponse{
+				Message: message,
+				Err:     err,
+				Object:  nil,
+			}
+		} else {
+			// then, we need to get the vet info from the database
+			mainInfo, err := Queries.GetVetMainInfoById(c.Context(), vetId)
+			//? if error occurs, return 404
+			if err != nil {
+				c.Status(fiber.StatusNotFound)
+				getVetChan <- HttpGetResponse{
+					Message: responseMessages["vetNotFound"],
+					Err:     err,
+					Object:  nil,
+				}
+			} else {
+				getVetChan <- HttpGetResponse{
+					Message: responseMessages["vetFound"],
+					Err:     nil,
+					Object:  mainInfo,
+				}
+			}
 		}
-
-		getVetChan <- mainInfo
 		close(getVetChan)
 	}()
 
-	mainInfo := <-getVetChan
-	if mainInfo == (db.GetVetMainInfoByIdRow{}) {
+	//? handling channel response
+	if chanResponse := <-getVetChan; chanResponse.Err != nil {
 		return c.JSON(fiber.Map{
-			"message": responseMessages["vetNotFound"],
+			"message": chanResponse.Message,
+			"error":   chanResponse.Err.Error(),
 		})
+	} else {
+		return c.JSON(chanResponse.Object)
 	}
-
-	return c.JSON(mainInfo)
 }
 
 // UpdateVet is a function that updates the vet info
 // by the vet id from the fiber context
 func UpdateVet(c *fiber.Ctx) error {
-	// Get the vetId from the request context
-	// If variable not found or not of type string
-	// return 500 with error message
-	vetId, message, err := getIdFromRequestContext(c)
-	if err != nil {
-		c.Status(fiber.StatusInternalServerError)
-		return c.JSON(fiber.Map{
-			"message": message,
-			"error":   err.Error(),
-		})
-	}
-
 	var request db.Veterinario
 
 	// Parse request body from JSON to struct
 	c.BodyParser(&request)
-
-	request.ID = vetId
 
 	// Trim input fields from request body
 	purgeInputData(&request)
@@ -185,98 +182,144 @@ func UpdateVet(c *fiber.Ctx) error {
 		})
 	}
 
-	updateVetChan := make(chan error)
+	updateVetChan := make(chan ErrorResponse)
 	go func() {
-		// Mapping request body to db.UpdateVetParams struct
-		params := db.UpdateVetParams{
-			ID:        request.ID,
-			Nombre:    request.Nombre,
-			ApellidoP: request.ApellidoP,
-			ApellidoM: request.ApellidoM,
-			Telefono:  request.Telefono,
-			ImgUrl:    request.ImgUrl,
-		}
-
-		// Starting transaction
-		tx, err := DB.Begin()
+		// Get the vetId from the request context
+		vetId, message, err := getIdFromRequestContext(c)
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
-			updateVetChan <- errorMessages["beginTX"]
+			updateVetChan <- ErrorResponse{
+				Message: message,
+				Err:     err,
+			}
+		} else {
+			// Mapping request body to db.UpdateVetParams struct
+			params := db.UpdateVetParams{
+				ID:        vetId,
+				Nombre:    request.Nombre,
+				ApellidoP: request.ApellidoP,
+				ApellidoM: request.ApellidoM,
+				Telefono:  request.Telefono,
+				ImgUrl:    request.ImgUrl,
+			}
+			// Starting transaction
+			tx, err := DB.Begin()
+			if err != nil {
+				c.Status(fiber.StatusInternalServerError)
+				updateVetChan <- ErrorResponse{
+					Message: responseMessages["updateVetError"],
+					Err:     errorMessages["beginTX"],
+				}
+			} else {
+				// getting queries with transaction
+				qtx := Queries.WithTx(tx)
+				err = qtx.UpdateVet(c.Context(), params)
+				if err != nil {
+					c.Status(fiber.StatusInternalServerError)
+					updateVetChan <- ErrorResponse{
+						Message: responseMessages["updateVetError"],
+						Err:     errorMessages["updateInfo"],
+					}
+				} else {
+					if err := tx.Commit(); err != nil {
+						c.Status(fiber.StatusInternalServerError)
+						updateVetChan <- ErrorResponse{
+							Message: responseMessages["updateVetError"],
+							Err:     errorMessages["commitTX"],
+						}
+					} else {
+						updateVetChan <- ErrorResponse{
+							Message: responseMessages["updateVetSuccess"],
+							Err:     nil,
+						}
+					}
+				}
+			}
+			defer tx.Rollback()
 		}
-		defer tx.Rollback()
-
-		// getting queries with transaction
-		qtx := Queries.WithTx(tx)
-		err = qtx.UpdateVet(c.Context(), params)
-		if err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			updateVetChan <- errorMessages["updateInfo"]
-		}
-
-		updateVetChan <- tx.Commit()
 		close(updateVetChan)
 	}()
 
-	if err := <-updateVetChan; err != nil {
+	if chanResponse := <-updateVetChan; chanResponse.Err != nil {
 		return c.JSON(fiber.Map{
-			"mensaje": responseMessages["updateVetError"],
-			"error":   err,
+			"mensaje": chanResponse.Message,
+			"error":   chanResponse.Err.Error(),
+		})
+	} else {
+		return c.JSON(fiber.Map{
+			"mensaje": responseMessages["updateVetSuccess"],
 		})
 	}
-
-	return c.JSON(fiber.Map{
-		"mensaje": responseMessages["updateVetSuccess"],
-	})
 }
 
 // DeleteVet is a function that deletes the vet info
 // by the vet id from fiber context
 func DeleteVet(c *fiber.Ctx) error {
-	// Get the vetId from the request context
-	// If variable not found or not of type string
-	// return 500 with error message
-	vetId, message, err := getIdFromRequestContext(c)
-	if err != nil {
-		c.Status(fiber.StatusInternalServerError)
-		return c.JSON(fiber.Map{
-			"message": message,
-			"error":   err.Error(),
-		})
-	}
-
 	// delete vet go routine start
-	deleteVetChan := make(chan error)
+	deleteVetChan := make(chan ErrorResponse)
 	go func() {
-		// Starting transaction
-		tx, err := DB.Begin()
+		// Get the vetId from the request context
+		vetId, message, err := getIdFromRequestContext(c)
+		//? If variable not found or not of type string
+		//? return 500 with error message
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
-			deleteVetChan <- errorMessages["beginTX"]
+			deleteVetChan <- ErrorResponse{
+				Message: message,
+				Err:     err,
+			}
+		} else {
+			// Starting transaction
+			tx, err := DB.Begin()
+			//? if error starting transaction, return 500
+			if err != nil {
+				c.Status(fiber.StatusInternalServerError)
+				deleteVetChan <- ErrorResponse{
+					Message: responseMessages["deleteVetError"],
+					Err:     errorMessages["beginTX"],
+				}
+			} else {
+				// getting queries with transaction
+				qtx := Queries.WithTx(tx)
+				err = qtx.DeleteVet(c.Context(), vetId)
+				//? if error deleting vet, return 500
+				if err != nil {
+					c.Status(fiber.StatusInternalServerError)
+					deleteVetChan <- ErrorResponse{
+						Message: responseMessages["deleteVetError"],
+						Err:     errorMessages["deleteInfo"],
+					}
+				} else {
+					//? if error on commit, return 500
+					if err := tx.Commit(); err != nil {
+						c.Status(fiber.StatusInternalServerError)
+						deleteVetChan <- ErrorResponse{
+							Message: responseMessages["deleteVetError"],
+							Err:     errorMessages["commitTX"],
+						}
+					} else {
+						deleteVetChan <- ErrorResponse{
+							Message: responseMessages["deleteVetSuccess"],
+							Err:     nil,
+						}
+					}
+				}
+			}
+			defer tx.Rollback()
 		}
-		defer tx.Rollback()
-
-		// getting queries with transaction
-		qtx := Queries.WithTx(tx)
-		err = qtx.DeleteVet(c.Context(), vetId)
-		if err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			deleteVetChan <- errorMessages["deleteInfo"]
-		}
-
-		deleteVetChan <- tx.Commit()
 		close(deleteVetChan)
 	}()
 
-	if err := <-deleteVetChan; err != nil {
+	if chanResponse := <-deleteVetChan; chanResponse.Err != nil {
 		return c.JSON(fiber.Map{
-			"mensaje": responseMessages["deleteVetError"],
-			"error":   err,
+			"mensaje": chanResponse.Message,
+			"error":   chanResponse.Err.Error(),
+		})
+	} else {
+		return c.JSON(fiber.Map{
+			"mensaje": responseMessages["deleteVetSuccess"],
 		})
 	}
-
-	return c.JSON(fiber.Map{
-		"mensaje": responseMessages["deleteVetSuccess"],
-	})
 }
 
 // LoginVet is a function that logs in the vet
@@ -310,46 +353,46 @@ func LoginVet(c *fiber.Ctx) error {
 				Jwt: "",
 				Err: errorMessages["getInfo"],
 			}
-		}
-		// Compare password
-		// if error occurs, return 500
-		if err := util.CheckPassword(request.Password, vet.Password); err != nil {
-			c.Status(fiber.StatusUnauthorized)
-			loginVetChannel <- LoginResponse{
-				Jwt: "",
-				Err: errorMessages["wrongPassword"],
+		} else {
+			// Compare password
+			// if error occurs, return 500
+			if err := util.CheckPassword(request.Password, vet.Password); err != nil {
+				c.Status(fiber.StatusUnauthorized)
+				loginVetChannel <- LoginResponse{
+					Jwt: "",
+					Err: errorMessages["wrongPassword"],
+				}
+			} else {
+				// Generating jwt
+				// in case of error, returns 500 with error message
+				tokenString, err := auth.GenerateJWT(vet.ID, true)
+				if err != nil {
+					c.Status(fiber.StatusInternalServerError)
+					loginVetChannel <- LoginResponse{
+						Jwt: "",
+						Err: errorMessages["generateJWT"],
+					}
+				} else {
+					loginVetChannel <- LoginResponse{
+						Jwt: tokenString,
+						Err: nil,
+					}
+				}
 			}
-		}
-
-		// Generating jwt
-		// in case of error, returns 500 with error message
-		tokenString, err := auth.GenerateJWT(vet.ID, true)
-		if err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			loginVetChannel <- LoginResponse{
-				Jwt: "",
-				Err: errorMessages["generateJWT"],
-			}
-		}
-
-		loginVetChannel <- LoginResponse{
-			Jwt: tokenString,
-			Err: nil,
 		}
 		close(loginVetChannel)
 	}()
 
 	// Get response from goroutine
-	response := <-loginVetChannel
-	if response.Err != nil {
+	if chanResponse := <-loginVetChannel; chanResponse.Err != nil {
 		return c.JSON(fiber.Map{
 			"message": responseMessages["loginError"],
-			"error":   response.Err.Error(),
+			"error":   chanResponse.Err.Error(),
+		})
+	} else {
+		return c.JSON(fiber.Map{
+			"message": responseMessages["loginSuccess"],
+			"jwt":     chanResponse.Jwt,
 		})
 	}
-
-	return c.JSON(fiber.Map{
-		"message": responseMessages["loginSuccess"],
-		"jwt":     response.Jwt,
-	})
 }
