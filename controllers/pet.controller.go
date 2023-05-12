@@ -228,7 +228,6 @@ func UpdatePet(c *fiber.Ctx) error {
 					Message: message,
 					Err:     err,
 				}
-				close(updatePetChan)
 			} else {
 				// Getting the petId
 				petId, err := getPetIdFromUri(c)
@@ -239,7 +238,6 @@ func UpdatePet(c *fiber.Ctx) error {
 						Message: message,
 						Err:     err,
 					}
-					close(updatePetChan)
 				} else {
 					//* Checking if the user is the owner of the pet
 					if isOwner, err := isUserOwner(requestOwnerId, petId, c); err != nil {
@@ -248,14 +246,12 @@ func UpdatePet(c *fiber.Ctx) error {
 							Message: responseMessages["serverError"],
 							Err:     err,
 						}
-						close(updatePetChan)
 					} else if !isOwner {
 						c.Status(fiber.StatusUnauthorized)
 						updatePetChan <- ErrorResponse{
 							Message: responseMessages["unauthorized"],
 							Err:     err,
 						}
-						close(updatePetChan)
 					} else {
 						params := db.UpdatePetParams{
 							RazaID:          request.RazaID,
@@ -274,7 +270,6 @@ func UpdatePet(c *fiber.Ctx) error {
 								Message: responseMessages["serverError"],
 								Err:     errorMessages["beginTx"],
 							}
-							close(updatePetChan)
 						} else {
 							// implementing transaction in queries
 							qtx := Queries.WithTx(tx)
@@ -285,7 +280,6 @@ func UpdatePet(c *fiber.Ctx) error {
 									Message: responseMessages["updatePetError"],
 									Err:     err,
 								}
-								close(updatePetChan)
 							} else {
 								// Commiting transaction
 								//* if there is an error, return 500
@@ -294,7 +288,6 @@ func UpdatePet(c *fiber.Ctx) error {
 										Message: responseMessages["serverError"],
 										Err:     errorMessages["commitTx"],
 									}
-									close(updatePetChan)
 								} else {
 									updatePetChan <- ErrorResponse{
 										Message: "",
