@@ -90,13 +90,6 @@ func InsertNewPetByVet(c *fiber.Ctx) error {
 	panic("implement me") // TODO: Implement
 }
 
-// Error response struct is used for
-// generic GoRoutines error handling
-type ErrorResponse struct {
-	Message string `json:"message"`
-	Err     error  `json:"error"`
-}
-
 // DeletePet deletes a pet from the database
 // updating fecha_delete to current date
 func DeletePet(c *fiber.Ctx) error {

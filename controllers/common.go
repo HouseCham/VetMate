@@ -111,6 +111,13 @@ type HttpGetResponse struct {
 	Object  interface{} `json:"pet"`
 }
 
+// Error response struct is used for
+// generic GoRoutines error handling
+type ErrorResponse struct {
+	Message string `json:"message"`
+	Err     error  `json:"error"`
+}
+
 // ShareDbConnection is a function that shares the
 // database connection to all controllers
 // so that they can use the same connection
