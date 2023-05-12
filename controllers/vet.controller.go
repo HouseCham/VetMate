@@ -11,28 +11,13 @@ import (
 // InsertNewVet is a function that inserts a new vet
 // to the database
 func InsertNewVet(c *fiber.Ctx) error {
-
 	var request db.Veterinario
-	var err error
-
 	// Parse request body from JSON to struct
 	c.BodyParser(&request)
-
 	// Trim input fields from request body
 	purgeInputData(&request)
-
-	// Check if email is already in use
-	// set false as second parameter in order to check for vet emails
-	if message, status, err := checkEmailAlreadyInUse(request.Email, false, c); err != nil {
-		c.Status(status)
-		return c.JSON(fiber.Map{
-			"message": message,
-			"error":   err.Error(),
-		})
-	}
-
 	// Validate request body
-	// if not valid, return 400
+	// if not valid request, return 400
 	if err := validations.ValidateRequest(&request, 1); err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
@@ -40,58 +25,91 @@ func InsertNewVet(c *fiber.Ctx) error {
 			"error":   err.Error(),
 		})
 	}
-
 	// go routine for inserting vet start
-	insertVetChan := make(chan error)
+	insertVetChan := make(chan ErrorResponse)
 	go func() {
-		// Hash password
-		// if error occurs, return 500
-		request.Password, err = util.HashPassword(request.Password)
-		if err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			insertVetChan <- errorMessages["hashPassword"]
+		// Check if email is already in use
+		// set false as second parameter in order to check for vet emails
+		//? if error occurs, return function state and error
+		if message, status, err := checkEmailAlreadyInUse(request.Email, false, c); err != nil {
+			c.Status(status)
+			insertVetChan <- ErrorResponse{
+				Message: message,
+				Err:     err,
+			}
+		} else {
+			// Hash password
+			//? if error hashing password, return 500 and error
+			request.Password, err = util.HashPassword(request.Password)
+			if err != nil {
+				c.Status(fiber.StatusInternalServerError)
+				insertVetChan <- ErrorResponse{
+					Message: responseMessages["vetNotRegistered"],
+					Err:     errorMessages["hashPassword"],
+				}
+			} else {
+				// Mapping request body to InsertNewVetParams struct
+				params := db.InsertNewVetParams{
+					Nombre:    request.Nombre,
+					ApellidoP: request.ApellidoP,
+					ApellidoM: request.ApellidoM,
+					Password:  request.Password,
+					Email:     request.Email,
+					Telefono:  request.Telefono,
+					Token:     util.RandomStringNum(10),
+				}
+				// Starting transaction
+				//? if error starting transaction, return 500 and error
+				tx, err := DB.Begin()
+				if err != nil {
+					c.Status(fiber.StatusInternalServerError)
+					insertVetChan <- ErrorResponse{
+						Message: responseMessages["vetNotRegistered"],
+						Err:     errorMessages["beginTX"],
+					}
+				} else {
+					// getting queries with transaction
+					qtx := Queries.WithTx(tx)
+					err = qtx.InsertNewVet(c.Context(), params)
+					//? if error inserting newVet
+					if err != nil {
+						c.Status(fiber.StatusInternalServerError)
+						insertVetChan <- ErrorResponse{
+							Message: responseMessages["vetNotRegistered"],
+							Err:     errorMessages["insertInfo"],
+						}
+					} else {
+						//? if error commiting tx
+						if err := tx.Commit(); err != nil {
+							insertVetChan <- ErrorResponse{
+								Message: responseMessages["vetNotRegistered"],
+								Err:     errorMessages["commitTX"],
+							}
+						} else {
+							insertVetChan <- ErrorResponse{
+								Message: responseMessages["vetRegistered"],
+								Err:     nil,
+							}
+						}
+					}
+				}
+				defer tx.Rollback()
+			}
 		}
-
-		// Mapping request body to InsertNewVetParams struct
-		params := db.InsertNewVetParams{
-			Nombre:    request.Nombre,
-			ApellidoP: request.ApellidoP,
-			ApellidoM: request.ApellidoM,
-			Password:  request.Password,
-			Email:     request.Email,
-			Telefono:  request.Telefono,
-			Token:     util.RandomStringNum(10),
-		}
-
-		// Starting transaction
-		tx, err := DB.Begin()
-		if err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			insertVetChan <- errorMessages["beginTX"]
-		}
-		defer tx.Rollback()
-
-		// getting queries with transaction
-		qtx := Queries.WithTx(tx)
-		err = qtx.InsertNewVet(c.Context(), params)
-		if err != nil {
-			c.Status(fiber.StatusInternalServerError)
-			insertVetChan <- errorMessages["insertInfo"]
-		}
-		insertVetChan <- tx.Commit()
 		close(insertVetChan)
 	}()
 
-	if err := <-insertVetChan; err != nil {
+	//? handling channel response
+	if chanResponse := <-insertVetChan; chanResponse.Err != nil {
 		return c.JSON(fiber.Map{
-			"mensaje": responseMessages["vetNotRegistered"],
-			"error":   err.Error(),
+			"mensaje": chanResponse.Message,
+			"error":   chanResponse.Err.Error(),
+		})
+	} else {
+		return c.JSON(fiber.Map{
+			"mensaje": responseMessages["vetRegistered"],
 		})
 	}
-
-	return c.JSON(fiber.Map{
-		"mensaje": responseMessages["vetRegistered"],
-	})
 }
 
 // GetVetById is a function that gets the vet info
