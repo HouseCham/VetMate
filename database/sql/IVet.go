@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/HouseCham/VetMate/config"
 	"github.com/HouseCham/VetMate/validations"
@@ -196,6 +197,8 @@ func isValidInt(numberStr string, fieldName string) error {
 	return nil
 }
 
+// hasOnlyAlphanumericAndPunctuation is a function that checks if a string
+// contains only letters, numbers and punctuation signs
 func hasOnlyAlphanumericAndPunctuation(str string) bool {
 	// Regular expression pattern for letters and punctuation signs
 	pattern := "^[a-zA-Z0-9[:punct:]]+$"
@@ -204,4 +207,27 @@ func hasOnlyAlphanumericAndPunctuation(str string) bool {
 	// Test if the string matches the pattern
 	isValid := regex.MatchString(str)
 	return isValid
+}
+
+// isValidMySQLDate is a function that checks if a string is a valid MySQL date
+func isValidMySQLDate(dateStr string) bool {
+	_, err := time.Parse("2006-01-02", dateStr)
+	return err == nil
+}
+
+// isValidWeightValue is a function that checks if a string is a valid weight value, with 2 decimals
+func isValidWeightValue(weightStr string) bool {
+	regex := `^\d+(\.\d{2})?$`
+	match, _ := regexp.MatchString(regex, weightStr)
+	return match
+}
+
+// parseWeightValue is a function that parses a string to a float64
+// value
+func parseWeightValue(weightStr string) (float64, error) {
+	weight, err := strconv.ParseFloat(weightStr, 64)
+	if err != nil {
+		return 0, err
+	}
+	return weight, nil
 }

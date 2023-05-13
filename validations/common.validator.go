@@ -44,6 +44,7 @@ var ErrorMessages = map[string]string{
 	"alfanumerico_guion": "El campo %s solo puede contener letras, numeros y guiones",
 	"numerico": "El campo %s debe ser un número",
 	"imagen": "El campo %s debe ser una imagen válida",
+	"peso": "El campo Peso debe ser un peso válido y con 2 decimales",
 }
 
 // ShareConfigFile is a function that shares the
