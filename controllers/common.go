@@ -100,6 +100,21 @@ var responseMessages = map[string]string{
 	// Pass away
 	"petPassAwayError":   "Hubo un error al registrar fallecimiento de mascota",
 	"petPassAwaySuccess": "Lamentamos mucho tu pérdida, esperamos que estés bien",
+
+	/* ========== VACCINE ========== */
+	// Insert
+	"insertVaccineSuccess": "Vacuna registrada con éxito",
+	"insertVaccineError":   "Hubo un error al registrar vacuna",
+	// Update
+	"updateVaccineError":   "Hubo un error al actualizar vacuna",
+	"updateVaccineSuccess": "Vacuna actualizada con éxito",
+	// Delete
+	"deleteVaccineError":   "Hubo un error al eliminar vacuna",
+	"deleteVaccineSuccess": "Vacuna eliminada con éxito",
+	// Get
+	"vaccineNotFound":  "Vacuna no encontrada",
+	"vaccinesNotFound": "Vacunas no encontradas",
+	
 }
 
 // HttpGetResponse is the response

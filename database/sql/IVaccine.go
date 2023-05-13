@@ -27,8 +27,6 @@ func (vaccine *Vacunacione) ValidateNewRegister() error {
 		return fmt.Errorf(validations.ErrorMessages["requerido"], "MascotaID")
 	} else if !vaccine.TipoVacunaID.Valid || vaccine.TipoVacunaID.Int32 <= 0 {
 		return fmt.Errorf(validations.ErrorMessages["requerido"], "TipoVacunaID")
-	} else if !vaccine.VetID.Valid || vaccine.VetID.Int32 <= 0 {
-		return fmt.Errorf(validations.ErrorMessages["requerido"], "VeterinarioID")
 	} else if !vaccine.DireccionSucursalID.Valid || vaccine.DireccionSucursalID.Int32 <= 0 {
 		return fmt.Errorf(validations.ErrorMessages["requerido"], "VacunaID")
 	}
