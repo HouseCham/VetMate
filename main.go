@@ -33,9 +33,7 @@ func main() {
 	defer db.Close()
 
 	controllers.ShareDbConnection(db)
-
-	ShareConfigFile(config)
-
+	shareConfigFile(config)
 	routes.SetAllRoutes(app)
 
 	log.Printf("Server is running on http://%s:%s", config.DevConfiguration.Server.Host, config.DevConfiguration.Server.Port)
@@ -45,7 +43,7 @@ func main() {
 
 // ShareConfigFile shares the config file with all the packages
 // that need it
-func ShareConfigFile(config config.Config) {
+func shareConfigFile(config config.Config) {
 	controllers.ShareConfigFile(&config)
 	validations.ShareConfigFile(&config)
 	auth.ShareConfigFile(&config)
