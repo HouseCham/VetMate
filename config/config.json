@@ -1,12 +1,12 @@
 {
     "dev": {
         "server": {
-            "host": "localhost",
-            "port": 3000
+            "host": "*********",
+            "port": ****
         },
         "database": {
             "driver_name": "mysql",
-            "dns": "root:secret@tcp(localhost:3306)/VetMate"
+            "dns": "**************************"
         },
         "parameters": {
             "pwd_min_length": 5,
@@ -29,7 +29,7 @@
             }
         },
         "jwt": {
-            "secret": "78^baWz7^TGYSU3%kc9O&$yHXXvlCS!C7KO35Sl#",
+            "secret": "****************************",
             "cookie_name": "jwt_token"
         }
     }
