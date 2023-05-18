@@ -2,7 +2,7 @@
     "dev": {
         "server": {
             "host": "*********",
-            "port": ****
+            "port": 0000
         },
         "database": {
             "driver_name": "mysql",
